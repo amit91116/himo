@@ -1,0 +1,38 @@
+name: himo
+description: History of Incomming, Missed and Outgoing Calls
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.16.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_bloc:
+  equatable:
+  permission_handler:
+  contacts_service:
+  call_log:
+  introduction_screen:
+  shared_preferences:
+  curved_navigation_bar:
+  cupertino_icons: ^1.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_app_name:
+
+flutter_app_name:
+  name: "HIMO"
+
+
+
+  flutter_lints: ^1.0.0
+
+flutter:
+
+  uses-material-design: true
