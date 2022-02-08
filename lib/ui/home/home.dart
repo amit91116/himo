@@ -43,9 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Icon(Icons.settings, size: 24, color: Theme.of(context).colorScheme.background),
         ],
         onTap: (index) => index != tabIndex
-            ? setState(() {
-                tabIndex = index;
-              })
+            ? setState(() => tabIndex = index)
             : null,
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );

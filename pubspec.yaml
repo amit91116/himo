@@ -19,6 +19,10 @@ dependencies:
   introduction_screen:
   shared_preferences:
   curved_navigation_bar:
+  flutter_svg:
+  url_launcher:
+  flutter_phone_direct_caller:
+  flutter_sms:
   cupertino_icons: ^1.0.2
 
 dev_dependencies:
@@ -36,3 +40,5 @@ flutter_app_name:
 flutter:
 
   uses-material-design: true
+  assets:
+    - assets/icons/whatsapp.svg
