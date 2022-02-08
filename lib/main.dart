@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {
           return MaterialApp(
-            title: 'Flutter Demo',
+            title: 'HIMO',
             theme: state.themeData,
             debugShowCheckedModeBanner: false,
             home: const Intro(),

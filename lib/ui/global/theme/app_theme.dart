@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 enum AppTheme { light, dark }
 
-String getThemeString(AppTheme appTheme){
-  switch(appTheme){
+String getThemeString(AppTheme appTheme) {
+  switch (appTheme) {
     case AppTheme.light:
       return "light";
     case AppTheme.dark:
@@ -11,8 +11,8 @@ String getThemeString(AppTheme appTheme){
   }
 }
 
-AppTheme getThemeEnum(String appTheme){
-  switch(appTheme){
+AppTheme getThemeEnum(String appTheme) {
+  switch (appTheme) {
     case "light":
       return AppTheme.light;
     case "dark":
@@ -24,14 +24,12 @@ AppTheme getThemeEnum(String appTheme){
 final appThemeData = {
   AppTheme.light: ThemeData(
     brightness: Brightness.light,
-    primaryColor: const Color.fromARGB(255, 75, 72, 242),
+    primaryColor: const Color.fromARGB(255, 24, 51, 254),
     backgroundColor: const Color.fromARGB(255, 250, 250, 250),
     scaffoldBackgroundColor: const Color.fromARGB(255, 250, 250, 250),
     colorScheme: const ColorScheme(
-      primary: Color.fromARGB(255, 75, 72, 242),
-      primaryVariant: Color.fromARGB(255, 75, 72, 242),
-      secondary: Color.fromARGB(255, 254, 99, 101),
-      secondaryVariant: Color.fromARGB(255, 254, 99, 101),
+      primary: Color.fromARGB(255, 24, 51, 254),
+      secondary: Color.fromARGB(255, 254, 104, 99),
       surface: Color.fromARGB(255, 250, 250, 250),
       background: Color.fromARGB(255, 250, 250, 250),
       error: Color.fromARGB(255, 254, 99, 101),
@@ -45,14 +43,12 @@ final appThemeData = {
   ),
   AppTheme.dark: ThemeData(
     brightness: Brightness.dark,
-    primaryColor: const Color.fromARGB(255, 75, 72, 242),
+    primaryColor: const Color.fromARGB(255, 24, 51, 254),
     backgroundColor: const Color.fromARGB(255, 20, 20, 20),
     scaffoldBackgroundColor: const Color.fromARGB(255, 20, 20, 20),
     colorScheme: const ColorScheme(
-      primary: Color.fromARGB(255, 75, 72, 242),
-      primaryVariant: Color.fromARGB(255, 75, 72, 242),
-      secondary: Color.fromARGB(255, 254, 99, 101),
-      secondaryVariant: Color.fromARGB(255, 254, 99, 101),
+      primary: Color.fromARGB(255, 24, 51, 254),
+      secondary: Color.fromARGB(255, 254, 104, 99),
       surface: Color.fromARGB(255, 20, 20, 20),
       background: Color.fromARGB(255, 20, 20, 20),
       error: Color.fromARGB(255, 254, 99, 101),
