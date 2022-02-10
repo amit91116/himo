@@ -23,8 +23,9 @@ dependencies:
   url_launcher:
   flutter_phone_direct_caller:
   flutter_sms:
-  cupertino_icons: ^1.0.2
+  cupertino_icons:
   flutter_native_splash:
+  fluttertoast:
 
 dev_dependencies:
   flutter_test:
