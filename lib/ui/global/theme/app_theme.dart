@@ -44,13 +44,13 @@ final appThemeData = {
   AppTheme.dark: ThemeData(
     brightness: Brightness.dark,
     primaryColor: const Color.fromARGB(255, 24, 51, 254),
-    backgroundColor: const Color.fromARGB(255, 20, 20, 20),
-    scaffoldBackgroundColor: const Color.fromARGB(255, 20, 20, 20),
+    backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+    scaffoldBackgroundColor: const Color.fromARGB(255, 0, 0, 0),
     colorScheme: const ColorScheme(
       primary: Color.fromARGB(255, 24, 51, 254),
       secondary: Color.fromARGB(255, 254, 104, 99),
-      surface: Color.fromARGB(255, 20, 20, 20),
-      background: Color.fromARGB(255, 20, 20, 20),
+      surface: Color.fromARGB(255, 0, 0, 0),
+      background: Color.fromARGB(255, 0, 0, 0),
       error: Color.fromARGB(255, 254, 99, 101),
       onPrimary: Color.fromARGB(255, 250, 250, 250),
       onSecondary: Color.fromARGB(255, 250, 250, 250),

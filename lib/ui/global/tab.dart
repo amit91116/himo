@@ -17,7 +17,7 @@ class _TabState extends State<MyTab> {
     return Container(
       width: size.width,
       height: size.height,
-      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+      padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 1.0),
       child: widget.body,
     );
   }

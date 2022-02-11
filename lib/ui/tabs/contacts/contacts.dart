@@ -43,6 +43,8 @@ class _ContactsState extends State<Contacts> {
                   searching = value.isNotEmpty;
                 });
               },
+              cursorWidth: 1,
+              style: const TextStyle(fontSize: 18),
               decoration: InputDecoration(
                 border: const UnderlineInputBorder(),
                 labelText: 'Search Contact',
@@ -95,9 +97,18 @@ class _ContactsState extends State<Contacts> {
             contentPadding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
             leading: (_contact.avatar != null && _contact.avatar!.isNotEmpty)
                 ? CircleAvatar(backgroundImage: MemoryImage(_contact.avatar!))
-                : CircleAvatar(child: Text(_contact.initials()), backgroundColor: Theme.of(context).colorScheme.primary),
+                : CircleAvatar(
+                    child: Text(
+                      _contact.initials(),
+                      style: TextStyle(color: Theme.of(context).colorScheme.background),
+                    ),
+                    backgroundColor: Theme.of(context).colorScheme.primary),
             title: Text(_contact.displayName ?? ''),
-            subtitle: _contact.displayName != null ? Text(_contact.phones!.isNotEmpty ? _contact.phones![0].value! : "") : null,
+            subtitle: _contact.displayName != null
+                ? Text(
+                    _contact.phones!.isNotEmpty ? _contact.phones![0].value! : "",
+                  )
+                : null,
             onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ContactDetails(contact: _contact))),
           );
         },
