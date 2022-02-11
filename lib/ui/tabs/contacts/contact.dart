@@ -8,6 +8,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:himo/ui/global/call_logs/bloc/call_logs_bloc.dart';
 import 'package:himo/ui/global/constants.dart';
 import 'package:himo/ui/global/static_visual.dart';
+import 'package:himo/ui/global/widgets/contact_call_log.dart';
 import 'package:himo/ui/tabs/call_logs.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_sms/flutter_sms.dart';
@@ -55,7 +56,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                 children: [
                   BlocBuilder<CallLogsBloc, CallLogsState>(builder: (context, state) {
                     if (state is CallLogsLoading) {
-                      return const CircularProgressIndicator();
+                      return const Center(child: CircularProgressIndicator());
                     } else if (state is CallLogsLoaded) {
                       return getLogsDetails(state, maxWidth);
                     }
@@ -82,7 +83,7 @@ class _ContactDetailsState extends State<ContactDetails> {
     if (output == "" && contact.phones != null && contact.phones!.isNotEmpty) {
       output = contact.phones![0].value ?? "";
     }
-    return output.toUpperCase();
+    return output;
   }
 
   String getPrimaryPhone(Contact contact) {
@@ -300,14 +301,21 @@ class _ContactDetailsState extends State<ContactDetails> {
   Widget getLogsDetails(CallLogsLoaded logs, double maxWidth) {
     return Container(
       width: maxWidth,
-      height: 100,
-      padding: const EdgeInsets.only(top: 16, bottom: 16),
-      child: Row(
-        children: [
-          Container(padding: const EdgeInsets.all(16), child: Text("Incomming Calls: ${logs.incommingCalls.count}")),
-          Container(padding: const EdgeInsets.all(16), child: Text("Outgoing Calls: ${logs.outgoingCalls.count}")),
-          Container(padding: const EdgeInsets.all(16), child: Text("Missed Calls: ${logs.missedCalls.count}")),
-        ],
+      margin: const EdgeInsets.only(bottom: 16),
+      height: 116,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ContactCallLog(logs: logs.incommingCalls),
+            ContactCallLog(logs: logs.outgoingCalls, margin: const EdgeInsets.only(left: 16, right: 16)),
+            ContactCallLog(logs: logs.missedCalls),
+          ],
+        ),
       ),
     );
   }

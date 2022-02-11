@@ -2,7 +2,9 @@ import 'package:bloc/bloc.dart';
 import 'package:call_log/call_log.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:himo/models/call_log.dart';
+import 'package:himo/ui/global/static_visual.dart';
 
 part 'call_logs_event.dart';
 part 'call_logs_state.dart';
@@ -24,9 +26,9 @@ class CallLogsBloc extends Bloc<CallLogsEvent, CallLogsState> {
         name: name,
         type: CallType.missed,
       );
-      HimoCallLog incommingLogs = HimoCallLog(incomingCalls);
-      HimoCallLog outgoingLogs = HimoCallLog(outgoingCalls);
-      HimoCallLog missedLogs = HimoCallLog(missedCalls);
+      HimoCallLog incommingLogs = HimoCallLog(incomingCalls, CallType.incoming, Icons.call_received, StaticVisual.incomingColor);
+      HimoCallLog outgoingLogs = HimoCallLog(outgoingCalls, CallType.outgoing, Icons.call_made, StaticVisual.outgoingColor);
+      HimoCallLog missedLogs = HimoCallLog(missedCalls, CallType.missed, Icons.call_missed, StaticVisual.missedColor);
 
       emit.call(CallLogsLoaded(incommingLogs, outgoingLogs, missedLogs));
     });

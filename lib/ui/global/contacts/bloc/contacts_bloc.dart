@@ -8,12 +8,14 @@ part 'contacts_event.dart';
 part 'contacts_state.dart';
 
 class ContactsBloc extends Bloc<ContactsEvent, ContactsState> {
+  static bool isContactLoaded = false;
   ContactsBloc() : super(const ContactsState(Iterable<Contact>.empty(), Iterable<Contact>.empty())) {
     on<InitializeContact>((event, emit) async {
       late Iterable<Contact> contacts;
-      if (state is ContactsInitialized) {
+      if (state is ContactsInitialized && isContactLoaded) {
         contacts = state.contacts;
       } else {
+        isContactLoaded = true;
         contacts = await ContactsService.getContacts();
       }
       emit.call(ContactsInitialized(contacts, const Iterable<Contact>.empty()));
