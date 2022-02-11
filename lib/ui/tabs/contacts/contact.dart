@@ -231,15 +231,23 @@ class _ContactDetailsState extends State<ContactDetails> {
             .map(
               (phone) => Slidable(
                 key: Key(phone.value!),
-                startActionPane: ActionPane(
+                endActionPane: ActionPane(
                   motion: const ScrollMotion(),
                   children: [
                     SlidableAction(
-                      onPressed: (context) => {deletePhoneNumber(context, phone)},
-                      backgroundColor: const Color(0xFFFE4A49),
-                      foregroundColor: Colors.white,
-                      icon: Icons.delete,
-                      label: 'Delete',
+                      onPressed: (context) => { sendSMS(message: "", recipients: [phone.value!])},
+                      backgroundColor: const Color(0xFFF86B00),
+                      foregroundColor: Theme.of(context).colorScheme.background,
+                      icon: Icons.message_outlined,
+                      label: 'Message',
+                    ),
+                    SlidableAction(
+                      onPressed: (context) => { launch("whatsapp://send?phone=${phone.value}")},
+                      backgroundColor: Colors.green,
+                      foregroundColor: Theme.of(context).colorScheme.background,
+                      icon: Icons.whatsapp_outlined,
+                      label: 'WhatsApp',
+                      autoClose: true,
                     ),
                   ],
                 ),
@@ -277,17 +285,32 @@ class _ContactDetailsState extends State<ContactDetails> {
     return Column(
         children: items
             .map(
-              (email) => ListTile(
-                leading: Icon(
-                  email.label == "work" ? Icons.work_outline : Icons.home_outlined,
-                  color: Theme.of(context).colorScheme.secondary,
+              (email) => Slidable(
+                key: Key(email.value!),
+                endActionPane: ActionPane(
+                  motion: const ScrollMotion(),
+                  children: [
+                    SlidableAction(
+                      onPressed: (context) => {_sendEmail(email.value!)},
+                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                      foregroundColor: Theme.of(context).colorScheme.background,
+                      icon: Icons.send,
+                      label: 'Delete',
+                    ),
+                  ],
                 ),
-                title: Text(email.value!),
-                trailing: TextButton(onPressed: () => {_sendEmail(email.value!)}, child: const Icon(Icons.email_outlined)),
-                onLongPress: () {
-                  Clipboard.setData(ClipboardData(text: email.value!));
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied!")));
-                },
+                child: ListTile(
+                  leading: Icon(
+                    email.label == "work" ? Icons.work_outline : Icons.home_outlined,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  title: Text(email.value!),
+                  trailing: TextButton(onPressed: () => {_sendEmail(email.value!)}, child: const Icon(Icons.email_outlined)),
+                  onLongPress: () {
+                    Clipboard.setData(ClipboardData(text: email.value!));
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied!")));
+                  },
+                ),
               ),
             )
             .toList());
@@ -342,10 +365,12 @@ class _ContactDetailsState extends State<ContactDetails> {
     );
   }
 
-  deletePhoneNumber(BuildContext context, Item phone) {
+  // This feature is not yet supported by Contact Services
+  deletePhoneNumber(BuildContext context, Item phone) async {
     Contact updatedContact = contact;
     updatedContact.phones!.remove(phone);
-    ContactsService.updateContact(updatedContact);
+    await ContactsService.deleteContact(contact);
+    await ContactsService.addContact(updatedContact);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("Phone deleted!", style: StaticVisual.error),
@@ -353,6 +378,26 @@ class _ContactDetailsState extends State<ContactDetails> {
           label: "Undo",
           onPressed: () {
             updatedContact.phones!.add(phone);
+            setState(() => contact = updatedContact);
+          },
+        ),
+      ),
+    );
+    setState(() => contact = updatedContact);
+  }
+
+  // This feature is not yet supported by Contact Services
+  deleteEmail(BuildContext context, Item email) {
+    Contact updatedContact = contact;
+    updatedContact.emails!.remove(email);
+    ContactsService.updateContact(updatedContact);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Email deleted!", style: StaticVisual.error),
+        action: SnackBarAction(
+          label: "Undo",
+          onPressed: () {
+            updatedContact.emails!.add(email);
             setState(() => contact = updatedContact);
           },
         ),

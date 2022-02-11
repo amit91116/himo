@@ -1,7 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:call_log/call_log.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:himo/models/call_log.dart';
 import 'package:himo/ui/global/static_visual.dart';
