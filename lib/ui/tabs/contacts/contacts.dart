@@ -15,7 +15,7 @@ class Contacts extends StatefulWidget {
 }
 
 class _ContactsState extends State<Contacts> {
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   bool searching = false;
 
   @override
@@ -44,17 +44,17 @@ class _ContactsState extends State<Contacts> {
                 });
               },
               decoration: InputDecoration(
-                border: UnderlineInputBorder(),
+                border: const UnderlineInputBorder(),
                 labelText: 'Search Contact',
                 suffixIcon: TextButton(
                     onPressed: () {
                       _searchController.clear();
-                      BlocProvider.of<ContactsBloc>(context).add(SearchContact(""));
+                      BlocProvider.of<ContactsBloc>(context).add(const SearchContact(""));
                       setState(() {
                         searching = false;
                       });
                     },
-                    child: searching ? Icon(Icons.close) : Icon(Icons.search)),
+                    child: searching ? const Icon(Icons.close) : const Icon(Icons.search)),
               ),
             ),
           ),
@@ -85,20 +85,27 @@ class _ContactsState extends State<Contacts> {
   }
 
   Widget getContactListView(BuildContext context, Iterable<Contact> contacts) {
-    return ListView.builder(
-      itemCount: contacts.length,
-      itemBuilder: (BuildContext context, int index) {
-        Contact _contact = contacts.elementAt(index);
-        return ListTile(
-          contentPadding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
-          leading: (_contact.avatar != null && _contact.avatar!.isNotEmpty)
-              ? CircleAvatar(backgroundImage: MemoryImage(_contact.avatar!))
-              : CircleAvatar(child: Text(_contact.initials()), backgroundColor: Theme.of(context).colorScheme.primary),
-          title: Text(_contact.displayName ?? ''),
-          subtitle: _contact.displayName != null ? Text(_contact.phones!.isNotEmpty ? _contact.phones![0].value! : "") : null,
-          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ContactDetails(contact: _contact))),
-        );
-      },
+    return RefreshIndicator(
+      onRefresh: refreshContacts,
+      child: ListView.builder(
+        itemCount: contacts.length,
+        itemBuilder: (BuildContext context, int index) {
+          Contact _contact = contacts.elementAt(index);
+          return ListTile(
+            contentPadding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
+            leading: (_contact.avatar != null && _contact.avatar!.isNotEmpty)
+                ? CircleAvatar(backgroundImage: MemoryImage(_contact.avatar!))
+                : CircleAvatar(child: Text(_contact.initials()), backgroundColor: Theme.of(context).colorScheme.primary),
+            title: Text(_contact.displayName ?? ''),
+            subtitle: _contact.displayName != null ? Text(_contact.phones!.isNotEmpty ? _contact.phones![0].value! : "") : null,
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ContactDetails(contact: _contact))),
+          );
+        },
+      ),
     );
+  }
+
+  Future<void> refreshContacts() async {
+    BlocProvider.of<ContactsBloc>(context).add(const RefreshContacts());
   }
 }

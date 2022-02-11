@@ -15,6 +15,14 @@ class InitializeContact extends ContactsEvent {
   List<Object?> get props => [];
 }
 
+
+class RefreshContacts extends ContactsEvent {
+  const RefreshContacts() : super();
+
+  @override
+  List<Object?> get props => [];
+}
+
 class SearchContact extends ContactsEvent {
   final String searchContact;
 

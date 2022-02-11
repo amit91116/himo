@@ -26,7 +26,9 @@ class _ContactDetailsState extends State<ContactDetails> {
   late final String fullName;
   late final String primaryPhone;
   Contact contact;
+
   _ContactDetailsState(this.contact);
+
   @override
   void initState() {
     super.initState();
@@ -41,6 +43,7 @@ class _ContactDetailsState extends State<ContactDetails> {
   Widget build(BuildContext context) {
     double maxWidth = StaticVisual.usableWidth(context);
     return Scaffold(
+
       body: Column(
         children: [
           SizedBox(
@@ -182,6 +185,10 @@ class _ContactDetailsState extends State<ContactDetails> {
                   textScaleFactor: 1,
                 ),
               ),
+              Visibility(
+                visible: contact.birthday != null,
+                child: Text(contact.birthday.toString()),
+              ),
               StaticVisual.smallHeight,
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -235,14 +242,16 @@ class _ContactDetailsState extends State<ContactDetails> {
                   motion: const ScrollMotion(),
                   children: [
                     SlidableAction(
-                      onPressed: (context) => { sendSMS(message: "", recipients: [phone.value!])},
+                      onPressed: (context) => {
+                        sendSMS(message: "", recipients: [phone.value!])
+                      },
                       backgroundColor: const Color(0xFFF86B00),
                       foregroundColor: Theme.of(context).colorScheme.background,
                       icon: Icons.message_outlined,
                       label: 'Message',
                     ),
                     SlidableAction(
-                      onPressed: (context) => { launch("whatsapp://send?phone=${phone.value}")},
+                      onPressed: (context) => {launch("whatsapp://send?phone=${phone.value}")},
                       backgroundColor: Colors.green,
                       foregroundColor: Theme.of(context).colorScheme.background,
                       icon: Icons.whatsapp_outlined,
