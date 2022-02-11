@@ -26,6 +26,7 @@ dependencies:
   cupertino_icons:
   flutter_native_splash:
   fluttertoast:
+  flutter_slidable:
 
 dev_dependencies:
   flutter_test:

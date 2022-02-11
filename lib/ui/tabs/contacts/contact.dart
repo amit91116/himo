@@ -1,17 +1,15 @@
 import 'package:contacts_service/contacts_service.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_sms/flutter_sms.dart';
 import 'package:himo/ui/global/call_logs/bloc/call_logs_bloc.dart';
 import 'package:himo/ui/global/constants.dart';
 import 'package:himo/ui/global/static_visual.dart';
 import 'package:himo/ui/global/widgets/contact_call_log.dart';
-import 'package:himo/ui/tabs/call_logs.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_sms/flutter_sms.dart';
 
 import '../../global/utils.dart';
 
@@ -21,20 +19,21 @@ class ContactDetails extends StatefulWidget {
   const ContactDetails({Key? key, required this.contact}) : super(key: key);
 
   @override
-  _ContactDetailsState createState() => _ContactDetailsState();
+  _ContactDetailsState createState() => _ContactDetailsState(contact);
 }
 
 class _ContactDetailsState extends State<ContactDetails> {
   late final String fullName;
   late final String primaryPhone;
-
+  Contact contact;
+  _ContactDetailsState(this.contact);
   @override
   void initState() {
     super.initState();
-    setState(() => fullName = getFullName(widget.contact));
-    setState(() => primaryPhone = getPrimaryPhone(widget.contact));
+    setState(() => fullName = getFullName(contact));
+    setState(() => primaryPhone = getPrimaryPhone(contact));
     if (fullName.isNotEmpty && primaryPhone != fullName) {
-      BlocProvider.of<CallLogsBloc>(context).add(LoadCallLogsForContactByName(widget.contact.displayName!));
+      BlocProvider.of<CallLogsBloc>(context).add(LoadCallLogsForContactByName(contact.displayName!));
     }
   }
 
@@ -156,9 +155,9 @@ class _ContactDetailsState extends State<ContactDetails> {
               color: Theme.of(context).colorScheme.primary,
               borderRadius: const BorderRadius.all(Radius.circular(58)),
             ),
-            child: (widget.contact.avatar != null && widget.contact.avatar!.isNotEmpty)
+            child: (contact.avatar != null && contact.avatar!.isNotEmpty)
                 ? CircleAvatar(
-                    backgroundImage: MemoryImage(widget.contact.avatar!),
+                    backgroundImage: MemoryImage(contact.avatar!),
                   )
                 : CircleAvatar(
                     child: const Icon(Icons.account_circle, size: 64),
@@ -177,9 +176,9 @@ class _ContactDetailsState extends State<ContactDetails> {
               StaticVisual.smallHeight,
               Text(fullName, textScaleFactor: 2),
               Visibility(
-                visible: (fullName != primaryPhone && widget.contact.phones!.isNotEmpty),
+                visible: (fullName != primaryPhone && contact.phones!.isNotEmpty),
                 child: Text(
-                  (fullName != primaryPhone && widget.contact.phones!.isNotEmpty) ? widget.contact.phones![0].value! : "",
+                  (fullName != primaryPhone && contact.phones!.isNotEmpty) ? contact.phones![0].value! : "",
                   textScaleFactor: 1,
                 ),
               ),
@@ -195,13 +194,12 @@ class _ContactDetailsState extends State<ContactDetails> {
                             sendSMS(message: "", recipients: [primaryPhone])
                           },
                       child: const Icon(Icons.message)),
-                  Visibility(visible: (widget.contact.emails != null && widget.contact.emails!.isNotEmpty), child: StaticVisual.smallWidth),
+                  Visibility(visible: (contact.emails != null && contact.emails!.isNotEmpty), child: StaticVisual.smallWidth),
                   Visibility(
-                    visible: (widget.contact.emails != null && widget.contact.emails!.isNotEmpty),
+                    visible: (contact.emails != null && contact.emails!.isNotEmpty),
                     child: TextButton(
-                        onPressed: (widget.contact.emails != null && widget.contact.emails!.isNotEmpty)
-                            ? () => {_sendEmail(widget.contact.emails![0].value!)}
-                            : null,
+                        onPressed:
+                            (contact.emails != null && contact.emails!.isNotEmpty) ? () => {_sendEmail(contact.emails![0].value!)} : null,
                         child: const Icon(Icons.email)),
                   ),
                   StaticVisual.smallWidth,
@@ -216,7 +214,7 @@ class _ContactDetailsState extends State<ContactDetails> {
   }
 
   Column getPhoneNumbers() {
-    if (widget.contact.phones == null || widget.contact.phones!.isEmpty) {
+    if (contact.phones == null || contact.phones!.isEmpty) {
       return Column(
         children: const [
           ListTile(
@@ -227,29 +225,44 @@ class _ContactDetailsState extends State<ContactDetails> {
       );
     }
     Set<String> phones = <String>{};
-    List<Item> items = widget.contact.phones!.where((element) => phones.add(removeSpaces(element.value!))).toList();
+    List<Item> items = contact.phones!.where((element) => phones.add(removeSpaces(element.value!))).toList();
     return Column(
         children: items
             .map(
-              (phone) => ListTile(
-                leading: Icon(
-                  phone.label == "work" ? Icons.work_outline : Icons.home_outlined,
-                  color: Theme.of(context).colorScheme.secondary,
+              (phone) => Slidable(
+                key: Key(phone.value!),
+                startActionPane: ActionPane(
+                  motion: const ScrollMotion(),
+                  children: [
+                    SlidableAction(
+                      onPressed: (context) => {deletePhoneNumber(context, phone)},
+                      backgroundColor: const Color(0xFFFE4A49),
+                      foregroundColor: Colors.white,
+                      icon: Icons.delete,
+                      label: 'Delete',
+                    ),
+                  ],
                 ),
-                title: Text(phone.value!),
-                trailing: TextButton(onPressed: () => _callNumber(phone.value!), child: const Icon(Icons.call_outlined)),
-                onLongPress: () {
-                  Clipboard.setData(ClipboardData(text: phone.value!));
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied!")));
-                },
-                onTap: () => launch("tel://${phone.value!}"),
+                child: ListTile(
+                  leading: Icon(
+                    phone.label == "work" ? Icons.work_outline : Icons.home_outlined,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  title: Text(phone.value!),
+                  trailing: TextButton(onPressed: () => _callNumber(phone.value!), child: const Icon(Icons.call_outlined)),
+                  onLongPress: () {
+                    Clipboard.setData(ClipboardData(text: phone.value!));
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied!")));
+                  },
+                  onTap: () => launch("tel://${phone.value!}"),
+                ),
               ),
             )
             .toList());
   }
 
   Column getEmails() {
-    if (widget.contact.emails == null || widget.contact.emails!.isEmpty) {
+    if (contact.emails == null || contact.emails!.isEmpty) {
       return Column(
         children: const [
           ListTile(
@@ -260,7 +273,7 @@ class _ContactDetailsState extends State<ContactDetails> {
       );
     }
     Set<String> emails = <String>{};
-    List<Item> items = widget.contact.emails!.where((element) => emails.add(element.value!)).toList();
+    List<Item> items = contact.emails!.where((element) => emails.add(element.value!)).toList();
     return Column(
         children: items
             .map(
@@ -302,21 +315,49 @@ class _ContactDetailsState extends State<ContactDetails> {
     return Container(
       width: maxWidth,
       margin: const EdgeInsets.only(bottom: 16),
-      height: 116,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            ContactCallLog(logs: logs.incommingCalls),
-            ContactCallLog(logs: logs.outgoingCalls, margin: const EdgeInsets.only(left: 16, right: 16)),
-            ContactCallLog(logs: logs.missedCalls),
-          ],
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      height: 96,
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ContactCallLog(logs: logs.incommingCalls),
+          ContactCallLog(logs: logs.outgoingCalls),
+          ContactCallLog(logs: logs.missedCalls),
+        ],
+      ),
+    );
+  }
+
+  Widget getDeleteBackground(BuildContext context, Alignment direction) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      alignment: direction,
+      decoration: const BoxDecoration(color: Colors.red),
+      child: Icon(
+        Icons.delete,
+        color: Theme.of(context).colorScheme.background,
+      ),
+    );
+  }
+
+  deletePhoneNumber(BuildContext context, Item phone) {
+    Contact updatedContact = contact;
+    updatedContact.phones!.remove(phone);
+    ContactsService.updateContact(updatedContact);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Phone deleted!", style: StaticVisual.error),
+        action: SnackBarAction(
+          label: "Undo",
+          onPressed: () {
+            updatedContact.phones!.add(phone);
+            setState(() => contact = updatedContact);
+          },
         ),
       ),
     );
+    setState(() => contact = updatedContact);
   }
 }
