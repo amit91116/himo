@@ -14,7 +14,7 @@ dependencies:
   flutter_bloc:
   equatable:
   permission_handler:
-  contacts_service:
+  flutter_contacts:
   call_log:
   introduction_screen:
   shared_preferences:

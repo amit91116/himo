@@ -1,12 +1,13 @@
-import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_sms/flutter_sms.dart';
 import 'package:himo/ui/global/call_logs/bloc/call_logs_bloc.dart';
 import 'package:himo/ui/global/constants.dart';
+import 'package:himo/ui/global/contacts/bloc/contacts_bloc.dart';
 import 'package:himo/ui/global/static_visual.dart';
 import 'package:himo/ui/global/widgets/contact_call_log.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,85 +15,86 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../global/utils.dart';
 
 class ContactDetails extends StatefulWidget {
-  final Contact contact;
+  final String contactId;
 
-  const ContactDetails({Key? key, required this.contact}) : super(key: key);
+  const ContactDetails({Key? key, required this.contactId}) : super(key: key);
 
   @override
-  _ContactDetailsState createState() => _ContactDetailsState(contact);
+  _ContactDetailsState createState() => _ContactDetailsState(contactId);
 }
 
 class _ContactDetailsState extends State<ContactDetails> {
-  late final String fullName;
-  late final String primaryPhone;
-  Contact contact;
+  final String contactId;
 
-  _ContactDetailsState(this.contact);
+  _ContactDetailsState(this.contactId);
 
   @override
   void initState() {
     super.initState();
-    setState(() => fullName = getFullName(contact));
-    setState(() => primaryPhone = getPrimaryPhone(contact));
-    if (fullName.isNotEmpty && primaryPhone != fullName) {
-      BlocProvider.of<CallLogsBloc>(context).add(LoadCallLogsForContactByName(contact.displayName!));
-    }
+    BlocProvider.of<ContactsBloc>(context).add(GetContact(contactId));
   }
 
   @override
   Widget build(BuildContext context) {
     double maxWidth = StaticVisual.usableWidth(context);
     return Scaffold(
-
-      body: Column(
-        children: [
-          SizedBox(
-            width: maxWidth,
-            height: 290,
-            child: getProfileStatic(maxWidth),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  BlocBuilder<CallLogsBloc, CallLogsState>(builder: (context, state) {
-                    if (state is CallLogsLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (state is CallLogsLoaded) {
-                      return getLogsDetails(state, maxWidth);
-                    }
-                    return Container();
-                  }),
-                  getHeading("Mobiles"),
-                  getPhoneNumbers(),
-                  getHeading("Emails"),
-                  getEmails(),
-                ],
-              ),
-            ),
-          ),
-        ],
+      body: BlocBuilder<ContactsBloc, ContactsState>(
+        builder: (context, state) {
+          if (state is ContactFound) {
+            BlocProvider.of<CallLogsBloc>(context).add(LoadCallLogsForContactByName(state.contact.displayName));
+            return Column(
+              children: [
+                SizedBox(
+                  width: maxWidth,
+                  height: 290,
+                  child: getProfileStatic(state.contact, maxWidth),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        BlocBuilder<CallLogsBloc, CallLogsState>(builder: (context, state) {
+                          if (state is CallLogsLoading) {
+                            return const Center(child: CircularProgressIndicator());
+                          } else if (state is CallLogsLoaded) {
+                            return getLogsDetails(state, maxWidth);
+                          }
+                          return Container();
+                        }),
+                        getHeading("Mobiles"),
+                        getPhoneNumbers(state.contact),
+                        getHeading("Emails"),
+                        getEmails(state.contact),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
       ),
     );
   }
 
   String getFullName(Contact contact) {
-    String output = "";
-    output += contact.prefix ?? "";
-    output += contact.displayName ?? "";
-    output += contact.suffix ?? "";
-    if (output == "" && contact.phones != null && contact.phones!.isNotEmpty) {
-      output = contact.phones![0].value ?? "";
+    String output = contact.displayName;
+    if (output == "" && contact.phones.isNotEmpty) {
+      output = contact.phones[0].number;
     }
     return output;
   }
 
   String getPrimaryPhone(Contact contact) {
-    return (contact.phones != null && contact.phones!.isNotEmpty) ? contact.phones![0].value! : "";
+    return (contact.phones.isNotEmpty) ? contact.phones[0].number : "";
   }
 
-  Widget getProfileStatic(double maxWidth) {
+  Widget getProfileStatic(Contact contact, double maxWidth) {
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -118,7 +120,7 @@ class _ContactDetailsState extends State<ContactDetails> {
         ),
         Positioned(
             left: 0,
-            top: 8,
+            top: 16,
             child: TextButton(
               child: Icon(
                 Icons.arrow_back,
@@ -158,9 +160,9 @@ class _ContactDetailsState extends State<ContactDetails> {
               color: Theme.of(context).colorScheme.primary,
               borderRadius: const BorderRadius.all(Radius.circular(58)),
             ),
-            child: (contact.avatar != null && contact.avatar!.isNotEmpty)
+            child: (contact.thumbnail != null)
                 ? CircleAvatar(
-                    backgroundImage: MemoryImage(contact.avatar!),
+                    backgroundImage: MemoryImage(contact.thumbnail!),
                   )
                 : CircleAvatar(
                     child: const Icon(Icons.account_circle, size: 64),
@@ -177,40 +179,41 @@ class _ContactDetailsState extends State<ContactDetails> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               StaticVisual.smallHeight,
-              Text(fullName, textScaleFactor: 2),
+              Text(getFullName(contact), textScaleFactor: 2),
               Visibility(
-                visible: (fullName != primaryPhone && contact.phones!.isNotEmpty),
+                visible: (getFullName(contact) != getPrimaryPhone(contact) && contact.phones.isNotEmpty),
                 child: Text(
-                  (fullName != primaryPhone && contact.phones!.isNotEmpty) ? contact.phones![0].value! : "",
+                  (getFullName(contact) != getPrimaryPhone(contact) && contact.phones.isNotEmpty) ? contact.phones[0].number : "",
                   textScaleFactor: 1,
                 ),
               ),
               Visibility(
-                visible: contact.birthday != null,
-                child: Text(contact.birthday.toString()),
-              ),
+                  visible: contact.events.isNotEmpty,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: contact.events.map((e) => Text(e.customLabel)).toList(),
+                  )),
               StaticVisual.smallHeight,
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextButton(onPressed: () => _callNumber(primaryPhone), child: const Icon(Icons.call)),
+                  TextButton(onPressed: () => _callNumber(getPrimaryPhone(contact)), child: const Icon(Icons.call)),
                   StaticVisual.smallWidth,
                   TextButton(
                       onPressed: () => {
-                            sendSMS(message: "", recipients: [primaryPhone])
+                            sendSMS(message: "", recipients: [getPrimaryPhone(contact)])
                           },
                       child: const Icon(Icons.message)),
-                  Visibility(visible: (contact.emails != null && contact.emails!.isNotEmpty), child: StaticVisual.smallWidth),
+                  Visibility(visible: (contact.emails.isNotEmpty), child: StaticVisual.smallWidth),
                   Visibility(
-                    visible: (contact.emails != null && contact.emails!.isNotEmpty),
+                    visible: (contact.emails.isNotEmpty),
                     child: TextButton(
-                        onPressed:
-                            (contact.emails != null && contact.emails!.isNotEmpty) ? () => {_sendEmail(contact.emails![0].value!)} : null,
+                        onPressed: (contact.emails.isNotEmpty) ? () => {_sendEmail(contact.emails[0].address)} : null,
                         child: const Icon(Icons.email)),
                   ),
                   StaticVisual.smallWidth,
-                  TextButton(onPressed: () => launch("whatsapp://send?phone=$primaryPhone"), child: Constants.whatsAppIcon),
+                  TextButton(onPressed: () => launch("whatsapp://send?phone=${getPrimaryPhone(contact)}"), child: Constants.whatsAppIcon),
                 ],
               ),
             ],
@@ -220,30 +223,42 @@ class _ContactDetailsState extends State<ContactDetails> {
     );
   }
 
-  Column getPhoneNumbers() {
-    if (contact.phones == null || contact.phones!.isEmpty) {
+  Column getPhoneNumbers(Contact contact) {
+    if (contact.phones.isEmpty) {
       return Column(
         children: const [
           ListTile(
             leading: Icon(Icons.phone_disabled),
-            title: Text("No phone found!"),
+            title: Text("No phone found"),
           ),
         ],
       );
     }
     Set<String> phones = <String>{};
-    List<Item> items = contact.phones!.where((element) => phones.add(removeSpaces(element.value!))).toList();
+    List<Phone> items = contact.phones.where((element) => phones.add(removeSpaces(element.number))).toList();
     return Column(
         children: items
             .map(
               (phone) => Slidable(
-                key: Key(phone.value!),
+                key: Key(phone.number),
+                startActionPane: ActionPane(
+                  motion: const ScrollMotion(),
+                  children: [
+                    SlidableAction(
+                      onPressed: (_) => {deletePhoneNumber(context, contact, phone)},
+                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                      foregroundColor: Theme.of(context).colorScheme.background,
+                      icon: Icons.delete_forever_outlined,
+                      label: 'Delete',
+                    ),
+                  ],
+                ),
                 endActionPane: ActionPane(
                   motion: const ScrollMotion(),
                   children: [
                     SlidableAction(
                       onPressed: (context) => {
-                        sendSMS(message: "", recipients: [phone.value!])
+                        sendSMS(message: "", recipients: [phone.number])
                       },
                       backgroundColor: const Color(0xFFF86B00),
                       foregroundColor: Theme.of(context).colorScheme.background,
@@ -251,7 +266,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                       label: 'Message',
                     ),
                     SlidableAction(
-                      onPressed: (context) => {launch("whatsapp://send?phone=${phone.value}")},
+                      onPressed: (context) => {launch("whatsapp://send?phone=${phone.number}")},
                       backgroundColor: Colors.green,
                       foregroundColor: Theme.of(context).colorScheme.background,
                       icon: Icons.whatsapp_outlined,
@@ -262,62 +277,74 @@ class _ContactDetailsState extends State<ContactDetails> {
                 ),
                 child: ListTile(
                   leading: Icon(
-                    phone.label == "work" ? Icons.work_outline : Icons.home_outlined,
+                    phone.label.name == "work" ? Icons.work_outline : Icons.home_outlined,
                     color: Theme.of(context).colorScheme.secondary,
                   ),
-                  title: Text(phone.value!),
-                  trailing: TextButton(onPressed: () => _callNumber(phone.value!), child: const Icon(Icons.call_outlined)),
+                  title: Text(phone.number),
+                  trailing: TextButton(onPressed: () => _callNumber(phone.number), child: const Icon(Icons.call_outlined)),
                   onLongPress: () {
-                    Clipboard.setData(ClipboardData(text: phone.value!));
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied!")));
+                    Clipboard.setData(ClipboardData(text: phone.number));
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied")));
                   },
-                  onTap: () => launch("tel://${phone.value!}"),
+                  onTap: () => launch("tel://${phone.number}"),
                 ),
               ),
             )
             .toList());
   }
 
-  Column getEmails() {
-    if (contact.emails == null || contact.emails!.isEmpty) {
+  Column getEmails(Contact contact) {
+    if (contact.emails.isEmpty) {
       return Column(
         children: const [
           ListTile(
             leading: Icon(Icons.unsubscribe),
-            title: Text("No email found!"),
+            title: Text("No email found"),
           ),
         ],
       );
     }
     Set<String> emails = <String>{};
-    List<Item> items = contact.emails!.where((element) => emails.add(element.value!)).toList();
+    List<Email> items = contact.emails.where((element) => emails.add(element.address)).toList();
     return Column(
         children: items
             .map(
               (email) => Slidable(
-                key: Key(email.value!),
+                key: Key(email.address),
+                startActionPane: ActionPane(
+                  motion: const ScrollMotion(),
+                  children: [
+                    SlidableAction(
+                      onPressed: (_) => {deleteEmail(context, contact, email)},
+                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                      foregroundColor: Theme.of(context).colorScheme.background,
+                      icon: Icons.delete_forever_outlined,
+                      label: 'Delete',
+                    ),
+                  ],
+                ),
                 endActionPane: ActionPane(
                   motion: const ScrollMotion(),
                   children: [
                     SlidableAction(
-                      onPressed: (context) => {_sendEmail(email.value!)},
+                      onPressed: (context) => {_sendEmail(email.address)},
                       backgroundColor: Theme.of(context).colorScheme.secondary,
                       foregroundColor: Theme.of(context).colorScheme.background,
                       icon: Icons.send,
-                      label: 'Delete',
+                      label: 'Email',
                     ),
                   ],
                 ),
                 child: ListTile(
                   leading: Icon(
-                    email.label == "work" ? Icons.work_outline : Icons.home_outlined,
+                    email.label.name == "work" ? Icons.work_outline : Icons.home_outlined,
                     color: Theme.of(context).colorScheme.secondary,
                   ),
-                  title: Text(email.value!),
-                  trailing: TextButton(onPressed: () => {_sendEmail(email.value!)}, child: const Icon(Icons.email_outlined)),
+                  title: Text(email.address),
+                  trailing: TextButton(onPressed: () => {_sendEmail(email.address)}, child: const Icon(Icons.email_outlined)),
                   onLongPress: () {
-                    Clipboard.setData(ClipboardData(text: email.value!));
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied!")));
+                    Clipboard.setData(ClipboardData(text: email.address));
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied")));
                   },
                 ),
               ),
@@ -375,18 +402,17 @@ class _ContactDetailsState extends State<ContactDetails> {
   }
 
   // This feature is not yet supported by Contact Services
-  deletePhoneNumber(BuildContext context, Item phone) async {
+  deletePhoneNumber(BuildContext context, Contact contact, Phone phone) async {
     Contact updatedContact = contact;
-    updatedContact.phones!.remove(phone);
-    await ContactsService.deleteContact(contact);
-    await ContactsService.addContact(updatedContact);
+    updatedContact.phones.remove(phone);
+    await FlutterContacts.updateContact(updatedContact);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("Phone deleted!", style: StaticVisual.error),
+        content: Text("Phone deleted", style: StaticVisual.error),
         action: SnackBarAction(
           label: "Undo",
           onPressed: () {
-            updatedContact.phones!.add(phone);
+            updatedContact.phones.add(phone);
             setState(() => contact = updatedContact);
           },
         ),
@@ -396,17 +422,17 @@ class _ContactDetailsState extends State<ContactDetails> {
   }
 
   // This feature is not yet supported by Contact Services
-  deleteEmail(BuildContext context, Item email) {
+  deleteEmail(BuildContext context, Contact contact, Email email) {
     Contact updatedContact = contact;
-    updatedContact.emails!.remove(email);
-    ContactsService.updateContact(updatedContact);
+    updatedContact.emails.remove(email);
+    FlutterContacts.updateContact(updatedContact);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("Email deleted!", style: StaticVisual.error),
+        content: Text("Email deleted", style: StaticVisual.error),
         action: SnackBarAction(
           label: "Undo",
           onPressed: () {
-            updatedContact.emails!.add(email);
+            updatedContact.emails.add(email);
             setState(() => contact = updatedContact);
           },
         ),

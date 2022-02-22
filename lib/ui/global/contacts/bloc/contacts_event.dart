@@ -31,3 +31,12 @@ class SearchContact extends ContactsEvent {
   @override
   List<Object?> get props => [];
 }
+
+
+class GetContact extends ContactsEvent {
+  final String contactId;
+  const GetContact(this.contactId) : super();
+
+  @override
+  List<Object?> get props => [];
+}

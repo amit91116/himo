@@ -1,8 +1,7 @@
-import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_contacts/contact.dart';
 import 'package:himo/ui/global/contacts/bloc/contacts_bloc.dart';
-import 'package:himo/ui/global/static_visual.dart';
 import 'package:himo/ui/tabs/contacts/contact.dart';
 
 import '../../global/tab.dart';
@@ -95,21 +94,14 @@ class _ContactsState extends State<Contacts> {
           Contact _contact = contacts.elementAt(index);
           return ListTile(
             contentPadding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
-            leading: (_contact.avatar != null && _contact.avatar!.isNotEmpty)
-                ? CircleAvatar(backgroundImage: MemoryImage(_contact.avatar!))
+            leading: (_contact.thumbnail != null && _contact.thumbnail!.isNotEmpty)
+                ? CircleAvatar(backgroundImage: MemoryImage(_contact.thumbnail!))
                 : CircleAvatar(
-                    child: Text(
-                      _contact.initials(),
-                      style: TextStyle(color: Theme.of(context).colorScheme.background),
-                    ),
-                    backgroundColor: Theme.of(context).colorScheme.primary),
-            title: Text(_contact.displayName ?? ''),
-            subtitle: _contact.displayName != null
-                ? Text(
-                    _contact.phones!.isNotEmpty ? _contact.phones![0].value! : "",
-                  )
-                : null,
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ContactDetails(contact: _contact))),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    child: const Icon(Icons.account_circle, size: 32),
+                  ),
+            title: Text(_contact.displayName),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ContactDetails(contactId: _contact.id))),
           );
         },
       ),

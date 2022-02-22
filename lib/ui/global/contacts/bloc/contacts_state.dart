@@ -33,3 +33,11 @@ class NoContactFound extends ContactsInitialized {
   List<Object> get props => [contacts];
 }
 
+class ContactFound extends ContactsInitialized {
+  final Contact contact;
+  const ContactFound(this.contact, contacts, filteredContacts) : super(contacts, filteredContacts);
+
+  @override
+  List<Object> get props => [contacts];
+}
+
