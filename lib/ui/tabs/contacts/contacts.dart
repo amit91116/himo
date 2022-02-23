@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/contact.dart';
 import 'package:himo/ui/global/contacts/bloc/contacts_bloc.dart';
+import 'package:himo/ui/global/string_extension.dart';
 import 'package:himo/ui/tabs/contacts/contact.dart';
 
 import '../../global/tab.dart';
@@ -98,7 +99,7 @@ class _ContactsState extends State<Contacts> {
                 ? CircleAvatar(backgroundImage: MemoryImage(_contact.thumbnail!))
                 : CircleAvatar(
                     backgroundColor: Theme.of(context).colorScheme.primary,
-                    child: const Icon(Icons.account_circle, size: 32),
+                    child: Text(_contact.displayName.initials(), textScaleFactor: 1.2,),
                   ),
             title: Text(_contact.displayName),
             onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ContactDetails(contactId: _contact.id))),

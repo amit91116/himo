@@ -11,7 +11,7 @@ import 'package:himo/ui/global/contacts/bloc/contacts_bloc.dart';
 import 'package:himo/ui/global/static_visual.dart';
 import 'package:himo/ui/global/widgets/contact_call_log.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import '../../global/string_extension.dart';
 import '../../global/utils.dart';
 
 class ContactDetails extends StatefulWidget {
@@ -44,9 +44,10 @@ class _ContactDetailsState extends State<ContactDetails> {
             BlocProvider.of<CallLogsBloc>(context).add(LoadCallLogsForContactByName(state.contact.displayName));
             return Column(
               children: [
-                SizedBox(
+                Container(
+                  margin: const EdgeInsets.only(top: 32, bottom: 16),
                   width: maxWidth,
-                  height: 290,
+                  height: 116,
                   child: getProfileStatic(state.contact, maxWidth),
                 ),
                 Expanded(
@@ -62,6 +63,8 @@ class _ContactDetailsState extends State<ContactDetails> {
                           }
                           return Container();
                         }),
+                        getHeading("Events"),
+                        getEvents(state.contact),
                         getHeading("Mobiles"),
                         getPhoneNumbers(state.contact),
                         getHeading("Emails"),
@@ -95,132 +98,116 @@ class _ContactDetailsState extends State<ContactDetails> {
   }
 
   Widget getProfileStatic(Contact contact, double maxWidth) {
-    return Stack(
-      fit: StackFit.expand,
+    return Row(
       children: [
-        Positioned(
-          left: 0,
-          top: 0,
-          child: Container(
-            width: maxWidth,
-            height: 108,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(maxWidth / 2), bottomRight: Radius.circular(maxWidth / 2)),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color.fromRGBO(0, 0, 0, 0.32),
-                  offset: Offset(0, 0),
-                  blurRadius: 5,
-                  spreadRadius: 5,
-                )
-              ],
-            ),
+        Container(
+          width: 116,
+          height: 116,
+          margin: const EdgeInsets.only(left: 16),
+          padding: const EdgeInsets.all(4.0),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary,
+            borderRadius: const BorderRadius.all(Radius.circular(58)),
           ),
-        ),
-        Positioned(
-            left: 0,
-            top: 16,
-            child: TextButton(
-              child: Icon(
-                Icons.arrow_back,
-                color: Theme.of(context).colorScheme.background,
-              ),
-              onPressed: () => Navigator.pop(context),
-            )),
-        Positioned(
-          left: maxWidth / 2 - 54,
-          top: 108,
-          width: 108,
-          height: 54,
-          child: Container(
-            padding: const EdgeInsets.all(4.0),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: const BorderRadius.only(bottomRight: Radius.circular(58), bottomLeft: Radius.circular(58)),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color.fromRGBO(0, 0, 0, 0.16),
-                  offset: Offset(0, 0),
-                  blurRadius: 5,
-                  spreadRadius: 5,
+          child: (contact.thumbnail != null)
+              ? CircleAvatar(
+                  backgroundImage: MemoryImage(contact.thumbnail!),
                 )
-              ],
-            ),
-          ),
-        ),
-        Positioned(
-          left: maxWidth / 2 - 54,
-          top: 54,
-          width: 108,
-          height: 108,
-          child: Container(
-            padding: const EdgeInsets.all(4.0),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: const BorderRadius.all(Radius.circular(58)),
-            ),
-            child: (contact.thumbnail != null)
-                ? CircleAvatar(
-                    backgroundImage: MemoryImage(contact.thumbnail!),
-                  )
-                : CircleAvatar(
-                    child: const Icon(Icons.account_circle, size: 64),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
+              : CircleAvatar(
+                  child: Text(
+                    getFullName(contact).initials(),
+                    textScaleFactor: 3.5,
                   ),
-          ),
-        ),
-        Positioned(
-          top: 166,
-          width: maxWidth,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              StaticVisual.smallHeight,
-              Text(getFullName(contact), textScaleFactor: 2),
-              Visibility(
-                visible: (getFullName(contact) != getPrimaryPhone(contact) && contact.phones.isNotEmpty),
-                child: Text(
-                  (getFullName(contact) != getPrimaryPhone(contact) && contact.phones.isNotEmpty) ? contact.phones[0].number : "",
-                  textScaleFactor: 1,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                 ),
-              ),
-              Visibility(
-                  visible: contact.events.isNotEmpty,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: contact.events.map((e) => Text(e.customLabel)).toList(),
-                  )),
-              StaticVisual.smallHeight,
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextButton(onPressed: () => _callNumber(getPrimaryPhone(contact)), child: const Icon(Icons.call)),
-                  StaticVisual.smallWidth,
-                  TextButton(
-                      onPressed: () => {
-                            sendSMS(message: "", recipients: [getPrimaryPhone(contact)])
-                          },
-                      child: const Icon(Icons.message)),
-                  Visibility(visible: (contact.emails.isNotEmpty), child: StaticVisual.smallWidth),
-                  Visibility(
-                    visible: (contact.emails.isNotEmpty),
-                    child: TextButton(
-                        onPressed: (contact.emails.isNotEmpty) ? () => {_sendEmail(contact.emails[0].address)} : null,
-                        child: const Icon(Icons.email)),
-                  ),
-                  StaticVisual.smallWidth,
-                  TextButton(onPressed: () => launch("whatsapp://send?phone=${getPrimaryPhone(contact)}"), child: Constants.whatsAppIcon),
-                ],
-              ),
-            ],
-          ),
+        ),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            StaticVisual.smallHeight,
+            Text(getFullName(contact), textScaleFactor: 2),
+            StaticVisual.smallHeight,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton(onPressed: () => _callNumber(getPrimaryPhone(contact)), child: const Icon(Icons.call)),
+                TextButton(
+                    onPressed: () => {
+                          sendSMS(message: "", recipients: [getPrimaryPhone(contact)])
+                        },
+                    child: const Icon(Icons.message)),
+                Visibility(
+                  visible: (contact.emails.isNotEmpty),
+                  child: TextButton(
+                      onPressed: (contact.emails.isNotEmpty) ? () => {_sendEmail(contact.emails[0].address)} : null,
+                      child: const Icon(Icons.email)),
+                ),
+                TextButton(onPressed: () => launch("whatsapp://send?phone=${getPrimaryPhone(contact)}"), child: Constants.whatsAppIcon),
+              ],
+            ),
+          ],
         ),
       ],
     );
+  }
+
+  Widget getEvents(Contact contact) {
+    if (contact.events.isEmpty) {
+      return Container();
+    } else {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.only(left: 16, bottom: 16, top: 16),
+        physics: const BouncingScrollPhysics(),
+        child: Expanded(
+          child: Row(
+              children: shortEvent(contact.events)
+                  .map((e) => Container(
+                        decoration: StaticVisual.boxDec(context),
+                        margin: const EdgeInsets.only(right: 16),
+                        height: 72,
+                        width: 128,
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              right: -8,
+                              bottom: 0,
+                              child: Icon(
+                                e.label == EventLabel.anniversary
+                                    ? Icons.card_giftcard
+                                    : e.label == EventLabel.birthday
+                                        ? Icons.cake_rounded
+                                        : Icons.calendar_today_rounded,
+                                size: 72,
+                                color: StaticVisual.bgIconColor(context),
+                              ),
+                            ),
+                            Positioned(
+                              left: 0,
+                              top: 0,
+                              right: 0,
+                              bottom: 0,
+                              child: Column(
+                                children: [
+                                  StaticVisual.mediumHeight,
+                                  Text(
+                                    getDate(e),
+                                    textScaleFactor: 1.1,
+                                  ),
+                                  Text(e.customLabel.isNotEmpty ? e.customLabel : e.label.name.capitalize()),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ))
+                  .toList()),
+        ),
+      );
+    }
   }
 
   Column getPhoneNumbers(Contact contact) {

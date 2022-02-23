@@ -17,15 +17,8 @@ class ContactCallLog extends StatelessWidget {
       margin: margin,
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.all(Radius.circular(16)),
-        boxShadow: [
-          BoxShadow(
-            color: logs.color.withOpacity(0.16),
-            offset: const Offset(0, 0),
-            blurRadius: 2,
-            spreadRadius: 2,
-          )
-        ],
-        color: logs.color.withOpacity(0.08),
+        border: Border.all(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.08)),
+        color: Theme.of(context).colorScheme.background,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
