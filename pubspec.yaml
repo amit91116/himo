@@ -27,6 +27,8 @@ dependencies:
   flutter_native_splash:
   fluttertoast:
   flutter_slidable:
+  modal_bottom_sheet:
+  image_picker:
 
 dev_dependencies:
   flutter_test:

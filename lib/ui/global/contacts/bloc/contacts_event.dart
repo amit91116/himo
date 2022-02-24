@@ -40,3 +40,10 @@ class GetContact extends ContactsEvent {
   @override
   List<Object?> get props => [];
 }
+
+class UpdateContact extends ContactsEvent {
+  final Contact updatedContact;
+  const UpdateContact(this.updatedContact): super();
+  @override
+  List<Object?> get props => [];
+}

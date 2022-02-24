@@ -27,11 +27,25 @@ class ContactsBloc extends Bloc<ContactsEvent, ContactsState> {
     });
 
     on<GetContact>((event, emit) async {
-      Contact? contact = await FlutterContacts.getContact(event.contactId,
-          withPhoto: true, withAccounts: true, deduplicateProperties: true, withGroups: true, withProperties: true, withThumbnail: true);
+      emit.call(ContactLoading(state.contacts, state.filteredContacts));
+      Contact? contact = await FlutterContacts.getContact(
+        event.contactId,
+        withPhoto: true,
+        withAccounts: true,
+        deduplicateProperties: true,
+        withGroups: true,
+        withProperties: true,
+        withThumbnail: true,
+      );
       if (contact != null) {
         emit.call(ContactFound(contact, state.contacts, const Iterable<Contact>.empty()));
       }
+    });
+
+    on<UpdateContact>((event, emit) async {
+      emit.call(ContactLoading(state.contacts, state.filteredContacts));
+      Contact contact = await FlutterContacts.updateContact(event.updatedContact);
+      emit.call(ContactFound(contact, state.contacts, const Iterable<Contact>.empty()));
     });
 
     on<RefreshContacts>((event, emit) async {

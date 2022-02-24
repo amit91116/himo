@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,6 +13,9 @@ import 'package:himo/ui/global/constants.dart';
 import 'package:himo/ui/global/contacts/bloc/contacts_bloc.dart';
 import 'package:himo/ui/global/static_visual.dart';
 import 'package:himo/ui/global/widgets/contact_call_log.dart';
+import 'package:himo/ui/global/widgets/icon_button.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../global/string_extension.dart';
 import '../../global/utils.dart';
@@ -110,15 +116,21 @@ class _ContactDetailsState extends State<ContactDetails> {
             borderRadius: const BorderRadius.all(Radius.circular(58)),
           ),
           child: (contact.thumbnail != null)
-              ? CircleAvatar(
-                  backgroundImage: MemoryImage(contact.thumbnail!),
-                )
-              : CircleAvatar(
-                  child: Text(
-                    getFullName(contact).initials(),
-                    textScaleFactor: 3.5,
+              ? GestureDetector(
+                  onTap: () => showProfilePicture(true, contact),
+                  child: CircleAvatar(
+                    backgroundImage: MemoryImage(contact.photoOrThumbnail!),
                   ),
-                  backgroundColor: Theme.of(context).colorScheme.primary,
+                )
+              : GestureDetector(
+                  onTap: () => showProfilePicture(false, contact),
+                  child: CircleAvatar(
+                    child: Text(
+                      getFullName(contact).initials(),
+                      textScaleFactor: 3.5,
+                    ),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
         ),
         Column(
@@ -388,11 +400,10 @@ class _ContactDetailsState extends State<ContactDetails> {
     );
   }
 
-  // This feature is not yet supported by Contact Services
   deletePhoneNumber(BuildContext context, Contact contact, Phone phone) async {
     Contact updatedContact = contact;
     updatedContact.phones.remove(phone);
-    await FlutterContacts.updateContact(updatedContact);
+    BlocProvider.of<ContactsBloc>(context).add(UpdateContact(updatedContact));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("Phone deleted", style: StaticVisual.error),
@@ -400,19 +411,17 @@ class _ContactDetailsState extends State<ContactDetails> {
           label: "Undo",
           onPressed: () {
             updatedContact.phones.add(phone);
-            setState(() => contact = updatedContact);
+            BlocProvider.of<ContactsBloc>(context).add(UpdateContact(updatedContact));
           },
         ),
       ),
     );
-    setState(() => contact = updatedContact);
   }
 
-  // This feature is not yet supported by Contact Services
   deleteEmail(BuildContext context, Contact contact, Email email) {
     Contact updatedContact = contact;
     updatedContact.emails.remove(email);
-    FlutterContacts.updateContact(updatedContact);
+    BlocProvider.of<ContactsBloc>(context).add(UpdateContact(updatedContact));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("Email deleted", style: StaticVisual.error),
@@ -420,11 +429,157 @@ class _ContactDetailsState extends State<ContactDetails> {
           label: "Undo",
           onPressed: () {
             updatedContact.emails.add(email);
-            setState(() => contact = updatedContact);
+            BlocProvider.of<ContactsBloc>(context).add(UpdateContact(updatedContact));
           },
         ),
       ),
     );
-    setState(() => contact = updatedContact);
+  }
+
+  showProfilePicture(bool haveImage, Contact contact) {
+    if (!haveImage) {
+      return;
+    } else {
+      return showDialog(
+        context: context,
+        builder: (ctx) => Stack(
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: Container(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height,
+                color: Theme.of(context).colorScheme.background.withOpacity(0.24),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                  child: Container(),
+                ),
+              ),
+            ),
+            Center(
+              child: Stack(
+                children: [
+                  Container(
+                    width: 250,
+                    height: 250,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(MediaQuery.of(ctx).size.width / 2),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(context).colorScheme.onBackground.withOpacity(0.32),
+                            blurRadius: 8,
+                            spreadRadius: 4,
+                            offset: const Offset(0, 0),
+                          )
+                        ]),
+                    child: CircleAvatar(
+                      foregroundImage: MemoryImage(contact.photoOrThumbnail!),
+                    ),
+                  ),
+                  Positioned(
+                    right: 8,
+                    bottom: 8,
+                    child: CustomIconButton(
+                      onPressed: () => showImageOption(contact),
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      iconData: Icons.camera_alt,
+                      color: Theme.of(context).colorScheme.background,
+                      size: 32,
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  showImageOption(Contact contact) {
+    return showMaterialModalBottomSheet(
+      context: context,
+      builder: (_) => Container(
+        height: 100,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        padding: const EdgeInsets.only(left: 16),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Contact Photo",
+                  style: TextStyle(color: Colors.white),
+                  textScaleFactor: 1.1,
+                ),
+                CustomIconButton(
+                  iconData: Icons.delete,
+                  color: Colors.red,
+                  onPressed: () => removeImage(contact),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                CustomIconButton(
+                  iconData: Icons.camera_alt,
+                  color: Colors.white,
+                  onPressed: () {
+                    var image = pickImage(ImageSource.camera);
+                  },
+                ),
+                CustomIconButton(
+                  iconData: Icons.photo_library_rounded,
+                  color: Colors.white,
+                  onPressed: () {
+                    var image = pickImage(ImageSource.gallery);
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  pickImage(ImageSource source) async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image = await _picker.pickImage(source: source);
+    return image;
+  }
+
+  removeImage(Contact contact) async {
+    bool conformed = await confirmDelete(context, "Are you sure you want remove contact photo?");
+    if (conformed) {
+      Contact updatedContact = contact;
+      final photo = contact.photo;
+      final thumbnail = contact.thumbnail;
+      updatedContact.photo = null;
+      updatedContact.thumbnail = null;
+      BlocProvider.of<ContactsBloc>(context).add(UpdateContact(updatedContact));
+
+      Navigator.pop(context);
+      Navigator.pop(context);
+      SnackBar(
+        content: Text("Photo removed!", style: StaticVisual.error),
+        action: SnackBarAction(
+          label: "Undo",
+          onPressed: () {
+            updatedContact.photo = photo;
+            updatedContact.thumbnail = thumbnail;
+            BlocProvider.of<ContactsBloc>(context).add(UpdateContact(contact));
+          },
+        ),
+      );
+    }
   }
 }

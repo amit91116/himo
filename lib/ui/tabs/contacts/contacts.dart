@@ -95,8 +95,8 @@ class _ContactsState extends State<Contacts> {
           Contact _contact = contacts.elementAt(index);
           return ListTile(
             contentPadding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
-            leading: (_contact.thumbnail != null && _contact.thumbnail!.isNotEmpty)
-                ? CircleAvatar(backgroundImage: MemoryImage(_contact.thumbnail!))
+            leading: (_contact.photoOrThumbnail != null && _contact.photoOrThumbnail!.isNotEmpty)
+                ? CircleAvatar(backgroundImage: MemoryImage(_contact.photoOrThumbnail!))
                 : CircleAvatar(
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     child: Text(_contact.displayName.initials(), textScaleFactor: 1.2,),
