@@ -29,23 +29,25 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: tabs.elementAt(tabIndex),
-      bottomNavigationBar: CurvedNavigationBar(
-        backgroundColor: Theme.of(context).colorScheme.background,
-        color: Theme.of(context).colorScheme.primary,
-        height: Constants.navHeight,
-        animationDuration: const Duration(milliseconds: 300),
-        items: <Widget>[
-          Icon(Icons.dashboard, size: 24, color: Theme.of(context).colorScheme.background),
-          Icon(Icons.phone_callback, size: 24, color: Theme.of(context).colorScheme.background),
-          Icon(Icons.contacts, size: 24, color: Theme.of(context).colorScheme.background),
-          Icon(Icons.settings, size: 24, color: Theme.of(context).colorScheme.background),
-        ],
-        onTap: (index) => index != tabIndex
-            ? setState(() => tabIndex = index)
-            : null,
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    return SafeArea(
+      child: Scaffold(
+        body: tabs.elementAt(tabIndex),
+        bottomNavigationBar: CurvedNavigationBar(
+          backgroundColor: Theme.of(context).colorScheme.background,
+          color: Theme.of(context).colorScheme.primary,
+          height: Constants.navHeight,
+          animationDuration: const Duration(milliseconds: 300),
+          items: <Widget>[
+            Icon(Icons.dashboard, size: 24, color: Theme.of(context).colorScheme.background),
+            Icon(Icons.phone_callback, size: 24, color: Theme.of(context).colorScheme.background),
+            Icon(Icons.contacts, size: 24, color: Theme.of(context).colorScheme.background),
+            Icon(Icons.settings, size: 24, color: Theme.of(context).colorScheme.background),
+          ],
+          onTap: (index) => index != tabIndex
+              ? setState(() => tabIndex = index)
+              : null,
+        ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }

@@ -1,7 +1,10 @@
 import 'dart:core';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 
 String removeSpaces(String value) {
   return value.replaceAll(RegExp(r"\s+"), "");
@@ -56,3 +59,33 @@ Future<bool> confirmDelete(BuildContext context, String msg) async {
       )) ??
       false;
 }
+
+Future<XFile?> pickImage(ImageSource source) async {
+  final ImagePicker _picker = ImagePicker();
+  final XFile? image = await _picker.pickImage(source: source);
+  return image;
+}
+
+Future<File?> cropImage(File? imageFile, BuildContext context) async {
+  File? croppedFile = await ImageCropper().cropImage(
+      maxHeight: 500,
+      maxWidth: 500,
+      sourcePath: imageFile!.path,
+      cropStyle: CropStyle.circle,
+      compressQuality: 100,
+      aspectRatioPresets: [CropAspectRatioPreset.square],
+      androidUiSettings: AndroidUiSettings(
+          toolbarTitle: 'Crop Contact Photo',
+          toolbarColor: Theme.of(context).colorScheme.primary,
+          toolbarWidgetColor: Theme.of(context).colorScheme.background,
+          initAspectRatio: CropAspectRatioPreset.square,
+          lockAspectRatio: false),
+      iosUiSettings: const IOSUiSettings(
+        title: 'Crop Contact Photo',
+      ));
+  if (croppedFile != null) {
+    return croppedFile;
+  }
+  return null;
+}
+

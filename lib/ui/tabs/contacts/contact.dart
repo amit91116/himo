@@ -1,6 +1,7 @@
+import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,6 +18,7 @@ import 'package:himo/ui/global/widgets/icon_button.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../global/string_extension.dart';
 import '../../global/utils.dart';
 
@@ -168,7 +170,14 @@ class _ContactDetailsState extends State<ContactDetails> {
 
   Widget getEvents(Contact contact) {
     if (contact.events.isEmpty) {
-      return Container();
+      return Column(
+        children: const [
+          ListTile(
+            leading: Icon(Icons.close),
+            title: Text("No Event found!"),
+          ),
+        ],
+      );
     } else {
       return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -228,7 +237,7 @@ class _ContactDetailsState extends State<ContactDetails> {
         children: const [
           ListTile(
             leading: Icon(Icons.phone_disabled),
-            title: Text("No phone found"),
+            title: Text("No phone found!"),
           ),
         ],
       );
@@ -298,7 +307,7 @@ class _ContactDetailsState extends State<ContactDetails> {
         children: const [
           ListTile(
             leading: Icon(Icons.unsubscribe),
-            title: Text("No email found"),
+            title: Text("No email found!"),
           ),
         ],
       );
@@ -406,7 +415,8 @@ class _ContactDetailsState extends State<ContactDetails> {
     BlocProvider.of<ContactsBloc>(context).add(UpdateContact(updatedContact));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("Phone deleted", style: StaticVisual.error),
+        content: Text("Phone deleted!", style: StaticVisual.error),
+        duration: const Duration(seconds: 3),
         action: SnackBarAction(
           label: "Undo",
           onPressed: () {
@@ -424,7 +434,8 @@ class _ContactDetailsState extends State<ContactDetails> {
     BlocProvider.of<ContactsBloc>(context).add(UpdateContact(updatedContact));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("Email deleted", style: StaticVisual.error),
+        content: Text("Email deleted!", style: StaticVisual.error),
+        duration: const Duration(seconds: 3),
         action: SnackBarAction(
           label: "Undo",
           onPressed: () {
@@ -476,8 +487,18 @@ class _ContactDetailsState extends State<ContactDetails> {
                             offset: const Offset(0, 0),
                           )
                         ]),
-                    child: CircleAvatar(
-                      foregroundImage: MemoryImage(contact.photoOrThumbnail!),
+                    child: BlocBuilder<ContactsBloc, ContactsState>(
+                      builder: (context, state) {
+                        if (state is ContactFound) {
+                          return CircleAvatar(
+                            foregroundImage: MemoryImage(state.contact.photoOrThumbnail!),
+                          );
+                        } else {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                      },
                     ),
                   ),
                   Positioned(
@@ -533,14 +554,14 @@ class _ContactDetailsState extends State<ContactDetails> {
                   iconData: Icons.camera_alt,
                   color: Colors.white,
                   onPressed: () {
-                    var image = pickImage(ImageSource.camera);
+                    choseNewImage(ImageSource.camera, contact);
                   },
                 ),
                 CustomIconButton(
                   iconData: Icons.photo_library_rounded,
                   color: Colors.white,
                   onPressed: () {
-                    var image = pickImage(ImageSource.gallery);
+                    choseNewImage(ImageSource.gallery, contact);
                   },
                 ),
               ],
@@ -549,12 +570,6 @@ class _ContactDetailsState extends State<ContactDetails> {
         ),
       ),
     );
-  }
-
-  pickImage(ImageSource source) async {
-    final ImagePicker _picker = ImagePicker();
-    final XFile? image = await _picker.pickImage(source: source);
-    return image;
   }
 
   removeImage(Contact contact) async {
@@ -571,6 +586,7 @@ class _ContactDetailsState extends State<ContactDetails> {
       Navigator.pop(context);
       SnackBar(
         content: Text("Photo removed!", style: StaticVisual.error),
+        duration: const Duration(seconds: 3),
         action: SnackBarAction(
           label: "Undo",
           onPressed: () {
@@ -580,6 +596,25 @@ class _ContactDetailsState extends State<ContactDetails> {
           },
         ),
       );
+    }
+  }
+
+  Future<void> choseNewImage(ImageSource source, Contact contact) async {
+    XFile? image = await pickImage(source);
+    if (image != null) {
+      File? croppedImage = await cropImage(File(image.path), context);
+      if (croppedImage != null) {
+        final Uint8List bytes = await croppedImage.readAsBytes();
+        contact.photo = bytes;
+        BlocProvider.of<ContactsBloc>(context).add(UpdateContact(contact));
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Contact photo updated", style: StaticVisual.error),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 }
