@@ -26,7 +26,9 @@ class _ContactsState extends State<Contacts> {
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
+    Size size = MediaQuery
+        .of(context)
+        .size;
     return MyTab(
       title: "Contacts",
       body: Column(
@@ -67,7 +69,10 @@ class _ContactsState extends State<Contacts> {
                   if (state.filteredContacts.isNotEmpty) {
                     return getContactListView(context, state.filteredContacts);
                   } else {
-                    return Center(child: Text("No Contact Found!", style: TextStyle(color: Theme.of(context).colorScheme.onBackground)));
+                    return Center(child: Text("No Contact Found!", style: TextStyle(color: Theme
+                        .of(context)
+                        .colorScheme
+                        .onBackground)));
                   }
                 } else if (state is ContactsInitialized) {
                   if (state.filteredContacts.isNotEmpty) {
@@ -98,11 +103,18 @@ class _ContactsState extends State<Contacts> {
             leading: (_contact.photoOrThumbnail != null && _contact.photoOrThumbnail!.isNotEmpty)
                 ? CircleAvatar(backgroundImage: MemoryImage(_contact.photoOrThumbnail!))
                 : CircleAvatar(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    child: Text(_contact.displayName.initials(), textScaleFactor: 1.2,),
-                  ),
+              backgroundColor: Theme
+                  .of(context)
+                  .colorScheme
+                  .primary,
+              child: Text(_contact.displayName.initials(), textScaleFactor: 1.2,),
+            ),
             title: Text(_contact.displayName),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ContactDetails(contactId: _contact.id))),
+            onTap: () {
+              _searchController.clear();
+              FocusScope.of(context).unfocus();
+              Navigator.of(context).push(MaterialPageRoute(builder: (_) => ContactDetails(contactId: _contact.id)));
+            },
           );
         },
       ),

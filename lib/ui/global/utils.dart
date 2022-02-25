@@ -1,10 +1,18 @@
 import 'dart:core';
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:himo/ui/global/static_visual.dart';
+import 'package:himo/ui/global/validator.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+
+const String event = "Event";
+const String mobile = "Mobile";
+const String email = "Email";
 
 String removeSpaces(String value) {
   return value.replaceAll(RegExp(r"\s+"), "");
@@ -60,6 +68,82 @@ Future<bool> confirmDelete(BuildContext context, String msg) async {
       false;
 }
 
+Future<String?> getInput(BuildContext context, String title) async {
+  TextEditingController _controller = TextEditingController();
+  Widget cancelButton = TextButton(
+    child: const Text("Cancel"),
+    onPressed: () => Navigator.pop(context, null),
+  );
+  Widget continueButton = TextButton(
+    child: const Text("Add"),
+    onPressed: () => Navigator.pop(context, _controller.text),
+  );
+  AlertDialog alert = AlertDialog(
+    title: Text("Add $title"),
+    content: title == event
+        ? Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TypeAheadField(
+                textFieldConfiguration:
+                    TextFieldConfiguration(controller: _controller, decoration: const InputDecoration(hintText: "Enter Event")),
+                suggestionsCallback: (pattern) async {
+                  return await getSuggestions(pattern);
+                },
+                itemBuilder: (context, suggestion) {
+                  return ListTile(
+                    leading: Icon(suggestion.toString().toLowerCase() == EventLabel.anniversary.name
+                        ? Icons.card_giftcard
+                        : suggestion.toString().toLowerCase() == EventLabel.birthday.name
+                            ? Icons.cake_rounded
+                            : Icons.calendar_today_rounded),
+                    title: Text(suggestion.toString()),
+                  );
+                },
+                onSuggestionSelected: (suggestion) {
+                  _controller.text = suggestion.toString();
+                },
+              ),
+              SizedBox(
+                height: 156,
+                child: CupertinoDatePicker(
+                  mode: CupertinoDatePickerMode.date,
+                  initialDateTime: DateTime(1922, 1, 1),
+                  maximumDate: DateTime(2922),
+                  onDateTimeChanged: (DateTime newDateTime) {
+                    // Do something
+                  },
+                ),
+              ),
+            ],
+          )
+        : TextFormField(
+            controller: _controller,
+            keyboardType: getInputType(title),
+            validator: (value) => getValidator(title, value),
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            decoration: InputDecoration(hintText: "Enter $title"),
+          ),
+    actions: [
+      cancelButton,
+      continueButton,
+    ],
+  );
+  return (await showDialog<String>(
+    context: context,
+    builder: (BuildContext context) {
+      return alert;
+    },
+  ));
+}
+
+getSuggestions(String pattern) {
+  if (pattern.isEmpty) {
+    return [];
+  }
+  return ["Anniversary", "Birthday", "Home", "Work"].where((element) => element.toLowerCase().contains(pattern.toLowerCase())).toList();
+}
+
 Future<XFile?> pickImage(ImageSource source) async {
   final ImagePicker _picker = ImagePicker();
   final XFile? image = await _picker.pickImage(source: source);
@@ -75,13 +159,13 @@ Future<File?> cropImage(File? imageFile, BuildContext context) async {
       compressQuality: 100,
       aspectRatioPresets: [CropAspectRatioPreset.square],
       androidUiSettings: AndroidUiSettings(
-          toolbarTitle: 'Crop Contact Photo',
+          toolbarTitle: 'Adjust Contact Photo',
           toolbarColor: Theme.of(context).colorScheme.primary,
           toolbarWidgetColor: Theme.of(context).colorScheme.background,
           initAspectRatio: CropAspectRatioPreset.square,
           lockAspectRatio: false),
       iosUiSettings: const IOSUiSettings(
-        title: 'Crop Contact Photo',
+        title: 'Adjust Contact Photo',
       ));
   if (croppedFile != null) {
     return croppedFile;
@@ -89,3 +173,22 @@ Future<File?> cropImage(File? imageFile, BuildContext context) async {
   return null;
 }
 
+TextInputType getInputType(String title) {
+  if (title == email) {
+    return TextInputType.emailAddress;
+  } else if (title == mobile) {
+    return TextInputType.phone;
+  } else if (title == event) {
+    return TextInputType.datetime;
+  }
+  return TextInputType.text;
+}
+
+String? getValidator(String title, String? value) {
+  if (title == email) {
+    return value != null && Validator.email(value, Validator.patternEmail) ? null : "Enter Valid Email";
+  } else if (title == mobile) {
+    return value != null && Validator.phone(value, Validator.patternPhone) ? null : "Enter Valid Phone";
+  }
+  return null;
+}

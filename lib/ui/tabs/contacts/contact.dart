@@ -9,12 +9,17 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_sms/flutter_sms.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:himo/ui/global/call_logs/bloc/call_logs_bloc.dart';
 import 'package:himo/ui/global/constants.dart';
 import 'package:himo/ui/global/contacts/bloc/contacts_bloc.dart';
 import 'package:himo/ui/global/static_visual.dart';
+import 'package:himo/ui/global/validator.dart';
 import 'package:himo/ui/global/widgets/contact_call_log.dart';
 import 'package:himo/ui/global/widgets/icon_button.dart';
+import 'package:himo/ui/tabs/contacts/popups/email.dart';
+import 'package:himo/ui/tabs/contacts/popups/event.dart';
+import 'package:himo/ui/tabs/contacts/popups/mobile.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -71,11 +76,11 @@ class _ContactDetailsState extends State<ContactDetails> {
                           }
                           return Container();
                         }),
-                        getHeading("Events"),
+                        getHeading(event, state.contact),
                         getEvents(state.contact),
-                        getHeading("Mobiles"),
+                        getHeading(mobile, state.contact),
                         getPhoneNumbers(state.contact),
-                        getHeading("Emails"),
+                        getHeading(email, state.contact),
                         getEmails(state.contact),
                       ],
                     ),
@@ -185,47 +190,50 @@ class _ContactDetailsState extends State<ContactDetails> {
         physics: const BouncingScrollPhysics(),
         child: Expanded(
           child: Row(
-              children: shortEvent(contact.events)
-                  .map((e) => Container(
-                        decoration: StaticVisual.boxDec(context),
-                        margin: const EdgeInsets.only(right: 16),
-                        height: 72,
-                        width: 128,
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              right: -8,
-                              bottom: 0,
-                              child: Icon(
-                                e.label == EventLabel.anniversary
-                                    ? Icons.card_giftcard
-                                    : e.label == EventLabel.birthday
-                                        ? Icons.cake_rounded
-                                        : Icons.calendar_today_rounded,
-                                size: 72,
-                                color: StaticVisual.bgIconColor(context),
-                              ),
-                            ),
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              right: 0,
-                              bottom: 0,
-                              child: Column(
-                                children: [
-                                  StaticVisual.mediumHeight,
-                                  Text(
-                                    getDate(e),
-                                    textScaleFactor: 1.1,
-                                  ),
-                                  Text(e.customLabel.isNotEmpty ? e.customLabel : e.label.name.capitalize()),
-                                ],
-                              ),
-                            ),
-                          ],
+            children: shortEvent(contact.events)
+                .map(
+                  (e) => Container(
+                    decoration: StaticVisual.boxDec(context),
+                    margin: const EdgeInsets.only(right: 16),
+                    height: 72,
+                    width: 128,
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          right: -8,
+                          bottom: 0,
+                          child: Icon(
+                            e.label == EventLabel.anniversary
+                                ? Icons.card_giftcard
+                                : e.label == EventLabel.birthday
+                                    ? Icons.cake_rounded
+                                    : Icons.calendar_today_rounded,
+                            size: 72,
+                            color: StaticVisual.bgIconColor(context),
+                          ),
                         ),
-                      ))
-                  .toList()),
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: Column(
+                            children: [
+                              StaticVisual.mediumHeight,
+                              Text(
+                                getDate(e),
+                                textScaleFactor: 1.1,
+                              ),
+                              Text(e.customLabel.isNotEmpty ? e.customLabel : e.label.name.capitalize()),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
         ),
       );
     }
@@ -360,14 +368,53 @@ class _ContactDetailsState extends State<ContactDetails> {
             .toList());
   }
 
-  Widget getHeading(String heading) {
+  Widget getHeading(String heading, contact) {
     return Container(
-      padding: const EdgeInsets.only(left: 20),
-      child: Text(
-        heading,
-        textScaleFactor: 1,
+      padding: const EdgeInsets.only(left: 20, right: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            "${heading}s",
+            textScaleFactor: 1,
+          ),
+          TextButton(
+            onPressed: () => addContactDetail(heading, contact),
+            child: Text("Add $heading"),
+          ),
+        ],
       ),
     );
+  }
+
+  Future<void> addContactDetail(String heading, Contact contact) async {
+    if (heading == event) {
+      Event? newEvent = await getEvent(context);
+      if (newEvent != null) {
+        contact.events.add(newEvent);
+        BlocProvider.of<ContactsBloc>(context).add(UpdateContact(contact));
+      }
+    } else if (heading == mobile) {
+      Phone? newPhone = await getMobile(context);
+      if (newPhone != null) {
+        if (Validator.phone(newPhone.number, Validator.patternPhone)) {
+          contact.phones.add(newPhone);
+          BlocProvider.of<ContactsBloc>(context).add(UpdateContact(contact));
+        } else {
+          Fluttertoast.showToast(msg: "Invalid Phone!", textColor: Colors.red);
+        }
+      }
+    } else if (heading == email) {
+      Email? newEmail = await getEmail(context);
+      if (newEmail != null) {
+        if (Validator.email(newEmail.address, Validator.patternEmail)) {
+          contact.emails.add(newEmail);
+          BlocProvider.of<ContactsBloc>(context).add(UpdateContact(contact));
+        } else {
+          Fluttertoast.showToast(msg: "Invalid Email!", textColor: Colors.red);
+        }
+      }
+    }
   }
 
   _callNumber(String number) async {
