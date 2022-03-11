@@ -51,7 +51,7 @@ class ContactsBloc extends Bloc<ContactsEvent, ContactsState> {
     on<RefreshContacts>((event, emit) async {
       emit.call(const ContactLoading(Iterable<Contact>.empty(), Iterable<Contact>.empty()));
       isContactLoaded = true;
-      Iterable<Contact> contacts = await FlutterContacts.getContacts();
+      Iterable<Contact> contacts = await FlutterContacts.getContacts(withAccounts: true, withPhoto: true);
       emit.call(ContactsInitialized(contacts, const Iterable<Contact>.empty()));
     });
 

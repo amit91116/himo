@@ -152,7 +152,7 @@ class _ContactDetailsState extends State<ContactDetails> {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextButton(onPressed: () => _callNumber(getPrimaryPhone(contact)), child: const Icon(Icons.call)),
+                TextButton(onPressed: () => callNumber(getPrimaryPhone(contact)), child: const Icon(Icons.call)),
                 TextButton(
                     onPressed: () => {
                           sendSMS(message: "", recipients: [getPrimaryPhone(contact)])
@@ -276,7 +276,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                       onPressed: (context) => {
                         sendSMS(message: "", recipients: [phone.number])
                       },
-                      backgroundColor: const Color(0xFFF86B00),
+                      backgroundColor: Colors.orange,
                       foregroundColor: Theme.of(context).colorScheme.background,
                       icon: Icons.message_outlined,
                       label: 'Message',
@@ -297,7 +297,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                     color: Theme.of(context).colorScheme.secondary,
                   ),
                   title: Text(phone.number),
-                  trailing: TextButton(onPressed: () => _callNumber(phone.number), child: const Icon(Icons.call_outlined)),
+                  trailing: TextButton(onPressed: () => callNumber(phone.number), child: const Icon(Icons.call_outlined)),
                   onLongPress: () {
                     Clipboard.setData(ClipboardData(text: phone.number));
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied")));
@@ -415,10 +415,6 @@ class _ContactDetailsState extends State<ContactDetails> {
         }
       }
     }
-  }
-
-  _callNumber(String number) async {
-    await FlutterPhoneDirectCaller.callNumber(number);
   }
 
   _sendEmail(String email) {

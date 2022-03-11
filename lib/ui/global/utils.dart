@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:himo/ui/global/static_visual.dart';
 import 'package:himo/ui/global/validator.dart';
@@ -191,4 +192,9 @@ String? getValidator(String title, String? value) {
     return value != null && Validator.phone(value, Validator.patternPhone) ? null : "Enter Valid Phone";
   }
   return null;
+}
+
+
+callNumber(String number) async {
+  await FlutterPhoneDirectCaller.callNumber(number);
 }
