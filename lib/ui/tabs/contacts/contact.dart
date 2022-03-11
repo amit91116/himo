@@ -6,13 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_sms/flutter_sms.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:himo/ui/global/call_logs/bloc/call_logs_bloc.dart';
 import 'package:himo/ui/global/constants.dart';
-import 'package:himo/ui/global/contacts/bloc/contacts_bloc.dart';
 import 'package:himo/ui/global/static_visual.dart';
 import 'package:himo/ui/global/validator.dart';
 import 'package:himo/ui/global/widgets/contact_call_log.dart';
@@ -24,6 +22,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../global/contact/bloc/contact_bloc.dart';
 import '../../global/string_extension.dart';
 import '../../global/utils.dart';
 
@@ -44,14 +43,14 @@ class _ContactDetailsState extends State<ContactDetails> {
   @override
   void initState() {
     super.initState();
-    BlocProvider.of<ContactsBloc>(context).add(GetContact(contactId));
+    BlocProvider.of<ContactBloc>(context).add(GetContact(contactId));
   }
 
   @override
   Widget build(BuildContext context) {
     double maxWidth = StaticVisual.usableWidth(context);
     return Scaffold(
-      body: BlocBuilder<ContactsBloc, ContactsState>(
+      body: BlocBuilder<ContactBloc, ContactState>(
         builder: (context, state) {
           if (state is ContactFound) {
             BlocProvider.of<CallLogsBloc>(context).add(LoadCallLogsForContactByName(state.contact.displayName));
@@ -152,12 +151,12 @@ class _ContactDetailsState extends State<ContactDetails> {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextButton(onPressed: () => callNumber(getPrimaryPhone(contact)), child: const Icon(Icons.call)),
+                TextButton(onPressed: () => callNumber(getPrimaryPhone(contact)), child: const Icon(Icons.call, color: Colors.green,)),
                 TextButton(
                     onPressed: () => {
                           sendSMS(message: "", recipients: [getPrimaryPhone(contact)])
                         },
-                    child: const Icon(Icons.message)),
+                    child: const Icon(Icons.message, color: Colors.orange,)),
                 Visibility(
                   visible: (contact.emails.isNotEmpty),
                   child: TextButton(
@@ -392,14 +391,14 @@ class _ContactDetailsState extends State<ContactDetails> {
       Event? newEvent = await getEvent(context);
       if (newEvent != null) {
         contact.events.add(newEvent);
-        BlocProvider.of<ContactsBloc>(context).add(UpdateContact(contact));
+        BlocProvider.of<ContactBloc>(context).add(UpdateContact(contact));
       }
     } else if (heading == mobile) {
       Phone? newPhone = await getMobile(context);
       if (newPhone != null) {
         if (Validator.phone(newPhone.number, Validator.patternPhone)) {
           contact.phones.add(newPhone);
-          BlocProvider.of<ContactsBloc>(context).add(UpdateContact(contact));
+          BlocProvider.of<ContactBloc>(context).add(UpdateContact(contact));
         } else {
           Fluttertoast.showToast(msg: "Invalid Phone!", textColor: Colors.red);
         }
@@ -409,7 +408,7 @@ class _ContactDetailsState extends State<ContactDetails> {
       if (newEmail != null) {
         if (Validator.email(newEmail.address, Validator.patternEmail)) {
           contact.emails.add(newEmail);
-          BlocProvider.of<ContactsBloc>(context).add(UpdateContact(contact));
+          BlocProvider.of<ContactBloc>(context).add(UpdateContact(contact));
         } else {
           Fluttertoast.showToast(msg: "Invalid Email!", textColor: Colors.red);
         }
@@ -455,7 +454,7 @@ class _ContactDetailsState extends State<ContactDetails> {
   deletePhoneNumber(BuildContext context, Contact contact, Phone phone) async {
     Contact updatedContact = contact;
     updatedContact.phones.remove(phone);
-    BlocProvider.of<ContactsBloc>(context).add(UpdateContact(updatedContact));
+    BlocProvider.of<ContactBloc>(context).add(UpdateContact(updatedContact));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("Phone deleted!", style: StaticVisual.error),
@@ -464,7 +463,7 @@ class _ContactDetailsState extends State<ContactDetails> {
           label: "Undo",
           onPressed: () {
             updatedContact.phones.add(phone);
-            BlocProvider.of<ContactsBloc>(context).add(UpdateContact(updatedContact));
+            BlocProvider.of<ContactBloc>(context).add(UpdateContact(updatedContact));
           },
         ),
       ),
@@ -474,7 +473,7 @@ class _ContactDetailsState extends State<ContactDetails> {
   deleteEmail(BuildContext context, Contact contact, Email email) {
     Contact updatedContact = contact;
     updatedContact.emails.remove(email);
-    BlocProvider.of<ContactsBloc>(context).add(UpdateContact(updatedContact));
+    BlocProvider.of<ContactBloc>(context).add(UpdateContact(updatedContact));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("Email deleted!", style: StaticVisual.error),
@@ -483,7 +482,7 @@ class _ContactDetailsState extends State<ContactDetails> {
           label: "Undo",
           onPressed: () {
             updatedContact.emails.add(email);
-            BlocProvider.of<ContactsBloc>(context).add(UpdateContact(updatedContact));
+            BlocProvider.of<ContactBloc>(context).add(UpdateContact(updatedContact));
           },
         ),
       ),
@@ -492,7 +491,7 @@ class _ContactDetailsState extends State<ContactDetails> {
 
   showProfilePicture(bool haveImage, Contact contact) {
     if (!haveImage) {
-      return;
+      return showImageOption(contact);
     } else {
       return showDialog(
         context: context,
@@ -530,7 +529,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                             offset: const Offset(0, 0),
                           )
                         ]),
-                    child: BlocBuilder<ContactsBloc, ContactsState>(
+                    child: BlocBuilder<ContactBloc, ContactState>(
                       builder: (context, state) {
                         if (state is ContactFound) {
                           return CircleAvatar(
@@ -623,7 +622,7 @@ class _ContactDetailsState extends State<ContactDetails> {
       final thumbnail = contact.thumbnail;
       updatedContact.photo = null;
       updatedContact.thumbnail = null;
-      BlocProvider.of<ContactsBloc>(context).add(UpdateContact(updatedContact));
+      BlocProvider.of<ContactBloc>(context).add(UpdateContact(updatedContact));
 
       Navigator.pop(context);
       Navigator.pop(context);
@@ -635,7 +634,7 @@ class _ContactDetailsState extends State<ContactDetails> {
           onPressed: () {
             updatedContact.photo = photo;
             updatedContact.thumbnail = thumbnail;
-            BlocProvider.of<ContactsBloc>(context).add(UpdateContact(contact));
+            BlocProvider.of<ContactBloc>(context).add(UpdateContact(contact));
           },
         ),
       );
@@ -649,7 +648,7 @@ class _ContactDetailsState extends State<ContactDetails> {
       if (croppedImage != null) {
         final Uint8List bytes = await croppedImage.readAsBytes();
         contact.photo = bytes;
-        BlocProvider.of<ContactsBloc>(context).add(UpdateContact(contact));
+        BlocProvider.of<ContactBloc>(context).add(UpdateContact(contact));
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

@@ -32,18 +32,3 @@ class SearchContact extends ContactsEvent {
   List<Object?> get props => [];
 }
 
-
-class GetContact extends ContactsEvent {
-  final String contactId;
-  const GetContact(this.contactId) : super();
-
-  @override
-  List<Object?> get props => [];
-}
-
-class UpdateContact extends ContactsEvent {
-  final Contact updatedContact;
-  const UpdateContact(this.updatedContact): super();
-  @override
-  List<Object?> get props => [];
-}

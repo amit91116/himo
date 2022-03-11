@@ -12,8 +12,8 @@ class ContactsState extends Equatable {
   List<Object?> get props => [contacts];
 }
 
-class ContactLoading extends ContactsState {
-  const ContactLoading(contacts, filteredContacts) : super(contacts, filteredContacts);
+class ContactsLoading extends ContactsState {
+  const ContactsLoading(contacts, filteredContacts) : super(contacts, filteredContacts);
 
   @override
   List<Object> get props => [contacts];
@@ -28,14 +28,6 @@ class ContactsInitialized extends ContactsState {
 
 class NoContactFound extends ContactsInitialized {
   const NoContactFound(contacts, filteredContacts) : super(contacts, filteredContacts);
-
-  @override
-  List<Object> get props => [contacts];
-}
-
-class ContactFound extends ContactsInitialized {
-  final Contact contact;
-  const ContactFound(this.contact, contacts, filteredContacts) : super(contacts, filteredContacts);
 
   @override
   List<Object> get props => [contacts];

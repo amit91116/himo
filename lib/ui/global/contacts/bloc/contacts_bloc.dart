@@ -26,30 +26,8 @@ class ContactsBloc extends Bloc<ContactsEvent, ContactsState> {
       }
     });
 
-    on<GetContact>((event, emit) async {
-      emit.call(ContactLoading(state.contacts, state.filteredContacts));
-      Contact? contact = await FlutterContacts.getContact(
-        event.contactId,
-        withPhoto: true,
-        withAccounts: true,
-        deduplicateProperties: true,
-        withGroups: true,
-        withProperties: true,
-        withThumbnail: true,
-      );
-      if (contact != null) {
-        emit.call(ContactFound(contact, state.contacts, const Iterable<Contact>.empty()));
-      }
-    });
-
-    on<UpdateContact>((event, emit) async {
-      emit.call(ContactLoading(state.contacts, state.filteredContacts));
-      Contact contact = await FlutterContacts.updateContact(event.updatedContact);
-      emit.call(ContactFound(contact, state.contacts, const Iterable<Contact>.empty()));
-    });
-
     on<RefreshContacts>((event, emit) async {
-      emit.call(const ContactLoading(Iterable<Contact>.empty(), Iterable<Contact>.empty()));
+      emit.call(const ContactsLoading(Iterable<Contact>.empty(), Iterable<Contact>.empty()));
       isContactLoaded = true;
       Iterable<Contact> contacts = await FlutterContacts.getContacts(withAccounts: true, withPhoto: true);
       emit.call(ContactsInitialized(contacts, const Iterable<Contact>.empty()));
@@ -63,7 +41,7 @@ class ContactsBloc extends Bloc<ContactsEvent, ContactsState> {
       } else {
         contacts = await FlutterContacts.getContacts();
       }
-      emit.call(ContactLoading(contacts, const Iterable<Contact>.empty()));
+      emit.call(ContactsLoading(contacts, const Iterable<Contact>.empty()));
       if (event.searchContact.isNotEmpty) {
         List<Contact> fContacts = <Contact>[];
         fContacts.addAll(contacts);

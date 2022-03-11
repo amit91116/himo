@@ -7,6 +7,7 @@ import 'package:himo/ui/global/contacts/bloc/contacts_bloc.dart';
 import 'package:himo/ui/global/string_extension.dart';
 import 'package:himo/ui/tabs/contacts/contact.dart';
 
+import '../../global/contact/bloc/contact_bloc.dart';
 import '../../global/tab.dart';
 import '../../global/utils.dart';
 
@@ -186,7 +187,6 @@ class _ContactsState extends State<Contacts> {
               ),
               title: Text(_contact.displayName),
               onTap: () {
-                resetSearch();
                 Navigator.of(context).push(MaterialPageRoute(builder: (_) => ContactDetails(contactId: _contact.id)));
               },
             ),
@@ -207,9 +207,9 @@ class _ContactsState extends State<Contacts> {
   }
 
   Future<bool> getNumbersDialog(direction, int index, Iterable<Contact> contacts) async {
-    resetSearch();
+
     Contact contact = contacts.toList()[index];
-    BlocProvider.of<ContactsBloc>(context).add(GetContact(contact.id));
+    BlocProvider.of<ContactBloc>(context).add(GetContact(contact.id));
 
     return await showDialog<bool>(
         context: context,
@@ -218,7 +218,7 @@ class _ContactsState extends State<Contacts> {
             title: Text(
                 direction == DismissDirection.endToStart ? "Send Message to ${contact.displayName}" : "Call to ${contact
                     .displayName}"),
-            content: BlocBuilder<ContactsBloc, ContactsState>(
+            content: BlocBuilder<ContactBloc, ContactState>(
               builder: (context, state) {
                 if (state is ContactFound) {
                   if (state.contact.phones.length == 1) {
