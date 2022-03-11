@@ -151,7 +151,7 @@ class _ContactsState extends State<Contacts> {
             ),
           ],
         ),
-        alignment: Alignment.centerLeft,
+        alignment: Alignment.centerRight,
       ),
     );
   }

@@ -32,18 +32,16 @@ class ContactDetails extends StatefulWidget {
   const ContactDetails({Key? key, required this.contactId}) : super(key: key);
 
   @override
-  _ContactDetailsState createState() => _ContactDetailsState(contactId);
+  _ContactDetailsState createState() => _ContactDetailsState();
 }
 
 class _ContactDetailsState extends State<ContactDetails> {
-  final String contactId;
-
-  _ContactDetailsState(this.contactId);
+  _ContactDetailsState();
 
   @override
   void initState() {
     super.initState();
-    BlocProvider.of<ContactBloc>(context).add(GetContact(contactId));
+    BlocProvider.of<ContactBloc>(context).add(GetContact(widget.contactId));
   }
 
   @override
@@ -183,6 +181,7 @@ class _ContactDetailsState extends State<ContactDetails> {
         ],
       );
     } else {
+      int index = 0;
       return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.only(left: 16, bottom: 16, top: 16),
@@ -191,43 +190,55 @@ class _ContactDetailsState extends State<ContactDetails> {
           child: Row(
             children: shortEvent(contact.events)
                 .map(
-                  (e) => Container(
-                    decoration: StaticVisual.boxDec(context),
-                    margin: const EdgeInsets.only(right: 16),
-                    height: 72,
-                    width: 128,
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          right: -8,
-                          bottom: 0,
-                          child: Icon(
-                            e.label == EventLabel.anniversary
-                                ? Icons.card_giftcard
-                                : e.label == EventLabel.birthday
-                                    ? Icons.cake_rounded
-                                    : Icons.calendar_today_rounded,
-                            size: 72,
-                            color: StaticVisual.bgIconColor(context),
+                  (e) => Dismissible(
+                    key: Key("${index++}"),
+                    direction: DismissDirection.down,
+                    background: slideDownBackground(),
+                    confirmDismiss: (direction) async {
+                      final bool res = await confirmDelete(context, "Are you sure you want remove event photo?");
+                      if(res){
+                        deleteEvent(context, contact, e);
+                      }
+                      return res;
+                    },
+                    child: Container(
+                      decoration: StaticVisual.boxDec(context),
+                      margin: const EdgeInsets.only(right: 16),
+                      height: 72,
+                      width: 128,
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            right: -8,
+                            bottom: 0,
+                            child: Icon(
+                              e.label == EventLabel.anniversary
+                                  ? Icons.card_giftcard
+                                  : e.label == EventLabel.birthday
+                                      ? Icons.cake_rounded
+                                      : Icons.calendar_today_rounded,
+                              size: 72,
+                              color: StaticVisual.bgIconColor(context),
+                            ),
                           ),
-                        ),
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          right: 0,
-                          bottom: 0,
-                          child: Column(
-                            children: [
-                              StaticVisual.mediumHeight,
-                              Text(
-                                getDate(e),
-                                textScaleFactor: 1.1,
-                              ),
-                              Text(e.customLabel.isNotEmpty ? e.customLabel : e.label.name.capitalize()),
-                            ],
+                          Positioned(
+                            left: 0,
+                            top: 0,
+                            right: 0,
+                            bottom: 0,
+                            child: Column(
+                              children: [
+                                StaticVisual.mediumHeight,
+                                Text(
+                                  getDate(e),
+                                  textScaleFactor: 1.1,
+                                ),
+                                Text(e.customLabel.isNotEmpty ? e.customLabel : e.label.name.capitalize()),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 )
@@ -451,6 +462,35 @@ class _ContactDetailsState extends State<ContactDetails> {
     );
   }
 
+  Widget slideDownBackground() {
+    return Container(
+      color: Colors.red,
+      child: Align(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: const <Widget>[
+            SizedBox(
+              width: 20,
+            ),
+            Icon(
+              Icons.delete,
+              color: Colors.white,
+            ),
+            Text(
+              "Delete",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+              textAlign: TextAlign.left,
+            ),
+          ],
+        ),
+        alignment: Alignment.centerLeft,
+      ),
+    );
+  }
+
   deletePhoneNumber(BuildContext context, Contact contact, Phone phone) async {
     Contact updatedContact = contact;
     updatedContact.phones.remove(phone);
@@ -463,6 +503,25 @@ class _ContactDetailsState extends State<ContactDetails> {
           label: "Undo",
           onPressed: () {
             updatedContact.phones.add(phone);
+            BlocProvider.of<ContactBloc>(context).add(UpdateContact(updatedContact));
+          },
+        ),
+      ),
+    );
+  }
+
+  deleteEvent(BuildContext context, Contact contact, Event event) {
+    Contact updatedContact = contact;
+    updatedContact.events.remove(event);
+    BlocProvider.of<ContactBloc>(context).add(UpdateContact(updatedContact));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Event deleted!", style: StaticVisual.error),
+        duration: const Duration(seconds: 3),
+        action: SnackBarAction(
+          label: "Undo",
+          onPressed: () {
+            updatedContact.events.add(event);
             BlocProvider.of<ContactBloc>(context).add(UpdateContact(updatedContact));
           },
         ),
