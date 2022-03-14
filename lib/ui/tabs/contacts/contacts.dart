@@ -4,6 +4,7 @@ import 'package:flutter_contacts/contact.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_sms/flutter_sms.dart';
 import 'package:himo/ui/global/contacts/bloc/contacts_bloc.dart';
+import 'package:himo/ui/global/static_visual.dart';
 import 'package:himo/ui/global/string_extension.dart';
 import 'package:himo/ui/tabs/contacts/contact.dart';
 
@@ -104,15 +105,14 @@ class _ContactsState extends State<Contacts> {
       child: Align(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
-          children: const <Widget>[
-            SizedBox(
-              width: 20,
-            ),
-            Icon(
+          children: <Widget>[
+            StaticVisual.mediumWidth,
+            const Icon(
               Icons.call,
               color: Colors.white,
             ),
-            Text(
+            StaticVisual.smallWidth,
+            const Text(
               "Call",
               style: TextStyle(
                 color: Colors.white,
@@ -132,26 +132,25 @@ class _ContactsState extends State<Contacts> {
       color: Colors.orange,
       child: Align(
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: const <Widget>[
-            SizedBox(
-              width: 20,
-            ),
-            Icon(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            const Icon(
               Icons.message,
               color: Colors.white,
             ),
-            Text(
+            StaticVisual.smallWidth,
+            const Text(
               "Message",
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,
               ),
-              textAlign: TextAlign.left,
+              textAlign: TextAlign.right,
             ),
+            StaticVisual.mediumWidth
           ],
         ),
-        alignment: Alignment.centerRight,
+        alignment: Alignment.centerLeft,
       ),
     );
   }

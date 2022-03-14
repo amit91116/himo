@@ -192,8 +192,8 @@ class _ContactDetailsState extends State<ContactDetails> {
                 .map(
                   (e) => Dismissible(
                     key: Key("${index++}"),
-                    direction: DismissDirection.down,
-                    background: slideDownBackground(),
+                    direction: DismissDirection.up,
+                    background: slideUpBackground(),
                     confirmDismiss: (direction) async {
                       final bool res = await confirmDelete(context, "Are you sure you want remove event photo?");
                       if(res){
@@ -462,9 +462,12 @@ class _ContactDetailsState extends State<ContactDetails> {
     );
   }
 
-  Widget slideDownBackground() {
+  Widget slideUpBackground() {
     return Container(
-      color: Colors.red,
+      decoration: const BoxDecoration(
+        color: Colors.red,
+        borderRadius: BorderRadius.all(Radius.circular(8))
+      ),
       child: Align(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
