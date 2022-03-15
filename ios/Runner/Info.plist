@@ -45,5 +45,7 @@
 		<false/>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSCalendarsUsageDescription</key>
+        <string>To sync events with Calendar</string>
 	</dict>
 </plist>

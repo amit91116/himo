@@ -149,19 +149,29 @@ class _ContactDetailsState extends State<ContactDetails> {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextButton(onPressed: () => callNumber(getPrimaryPhone(contact)), child: const Icon(Icons.call, color: Colors.green,)),
+                TextButton(
+                    onPressed: () => callNumber(getPrimaryPhone(contact)),
+                    child: const Icon(
+                      Icons.call,
+                      color: Colors.green,
+                    )),
                 TextButton(
                     onPressed: () => {
                           sendSMS(message: "", recipients: [getPrimaryPhone(contact)])
                         },
-                    child: const Icon(Icons.message, color: Colors.orange,)),
+                    child: const Icon(
+                      Icons.message,
+                      color: Colors.orange,
+                    )),
                 Visibility(
                   visible: (contact.emails.isNotEmpty),
                   child: TextButton(
                       onPressed: (contact.emails.isNotEmpty) ? () => {_sendEmail(contact.emails[0].address)} : null,
                       child: const Icon(Icons.email)),
                 ),
-                TextButton(onPressed: () => launch("whatsapp://send?phone=${getPrimaryPhone(contact)}"), child: Constants.whatsAppIcon),
+                TextButton(
+                    onPressed: () => launch("whatsapp://send?phone=${getPrimaryPhone(contact)}"),
+                    child: Constants.whatsAppIcon),
               ],
             ),
           ],
@@ -196,7 +206,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                     background: slideUpBackground(),
                     confirmDismiss: (direction) async {
                       final bool res = await confirmDelete(context, "Are you sure you want remove event photo?");
-                      if(res){
+                      if (res) {
                         deleteEvent(context, contact, e);
                       }
                       return res;
@@ -307,7 +317,8 @@ class _ContactDetailsState extends State<ContactDetails> {
                     color: Theme.of(context).colorScheme.secondary,
                   ),
                   title: Text(phone.number),
-                  trailing: TextButton(onPressed: () => callNumber(phone.number), child: const Icon(Icons.call_outlined)),
+                  trailing:
+                      TextButton(onPressed: () => callNumber(phone.number), child: const Icon(Icons.call_outlined)),
                   onLongPress: () {
                     Clipboard.setData(ClipboardData(text: phone.number));
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied")));
@@ -367,7 +378,8 @@ class _ContactDetailsState extends State<ContactDetails> {
                     color: Theme.of(context).colorScheme.secondary,
                   ),
                   title: Text(email.address),
-                  trailing: TextButton(onPressed: () => {_sendEmail(email.address)}, child: const Icon(Icons.email_outlined)),
+                  trailing:
+                      TextButton(onPressed: () => {_sendEmail(email.address)}, child: const Icon(Icons.email_outlined)),
                   onLongPress: () {
                     Clipboard.setData(ClipboardData(text: email.address));
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied")));
@@ -402,6 +414,8 @@ class _ContactDetailsState extends State<ContactDetails> {
       Event? newEvent = await getEvent(context);
       if (newEvent != null) {
         contact.events.add(newEvent);
+        bool repeatYearly = newEvent.label != EventLabel.custom;
+        addEvent(contact.displayName + ": " + newEvent.customLabel.toString(), DateTime(newEvent.year!, newEvent.month, newEvent.day), repeatYearly);
         BlocProvider.of<ContactBloc>(context).add(UpdateContact(contact));
       }
     } else if (heading == mobile) {
@@ -464,10 +478,7 @@ class _ContactDetailsState extends State<ContactDetails> {
 
   Widget slideUpBackground() {
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.red,
-        borderRadius: BorderRadius.all(Radius.circular(8))
-      ),
+      decoration: const BoxDecoration(color: Colors.red, borderRadius: BorderRadius.all(Radius.circular(8))),
       child: Align(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,

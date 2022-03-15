@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
-import 'package:himo/ui/global/static_visual.dart';
 import 'package:himo/ui/global/validator.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:add_2_calendar/add_2_calendar.dart' as calendar;
 
 const String event = "Event";
 const String mobile = "Mobile";
@@ -25,7 +25,8 @@ String getMonth(int month) {
 
 List<Event> shortEvent(List<Event> events) {
   int currentYear = DateTime.now().year;
-  events.sort((a, b) => (a.day < b.day && a.month < b.month && (a.year ?? currentYear) < (b.year ?? currentYear)) ? -1 : 1);
+  events.sort(
+      (a, b) => (a.day < b.day && a.month < b.month && (a.year ?? currentYear) < (b.year ?? currentYear)) ? -1 : 1);
   return events;
 }
 
@@ -86,8 +87,8 @@ Future<String?> getInput(BuildContext context, String title) async {
             mainAxisSize: MainAxisSize.min,
             children: [
               TypeAheadField(
-                textFieldConfiguration:
-                    TextFieldConfiguration(controller: _controller, decoration: const InputDecoration(hintText: "Enter Event")),
+                textFieldConfiguration: TextFieldConfiguration(
+                    controller: _controller, decoration: const InputDecoration(hintText: "Enter Event")),
                 suggestionsCallback: (pattern) async {
                   return await getSuggestions(pattern);
                 },
@@ -142,7 +143,9 @@ getSuggestions(String pattern) {
   if (pattern.isEmpty) {
     return [];
   }
-  return ["Anniversary", "Birthday", "Home", "Work"].where((element) => element.toLowerCase().contains(pattern.toLowerCase())).toList();
+  return ["Anniversary", "Birthday", "Home", "Work"]
+      .where((element) => element.toLowerCase().contains(pattern.toLowerCase()))
+      .toList();
 }
 
 Future<XFile?> pickImage(ImageSource source) async {
@@ -194,7 +197,25 @@ String? getValidator(String title, String? value) {
   return null;
 }
 
-
 callNumber(String number) async {
   await FlutterPhoneDirectCaller.callNumber(number);
+}
+
+Future addEvent(String title, DateTime dateTime, bool isEveryYear) async {
+  final calendar.Event event = calendar.Event(
+    title: title,
+    startDate: dateTime,
+    endDate: dateTime,
+    allDay: true,
+    iosParams: const calendar.IOSParams(
+      reminder: Duration(days: 1), // on iOS, you can set alarm notification after your event.
+    ),
+    androidParams: const calendar.AndroidParams(
+      emailInvites: [], // on Android, you can add invite emails to your event.
+    ),
+  );
+  if (isEveryYear) {
+    event.recurrence = calendar.Recurrence(frequency: calendar.Frequency.yearly);
+  }
+  await calendar.Add2Calendar.addEvent2Cal(event);
 }

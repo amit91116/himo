@@ -30,7 +30,8 @@ dependencies:
   modal_bottom_sheet:
   image_picker:
   image_cropper:
-  flutter_typeahead: ^3.2.4
+  flutter_typeahead:
+  add_2_calendar:
 
 dev_dependencies:
   flutter_test:
