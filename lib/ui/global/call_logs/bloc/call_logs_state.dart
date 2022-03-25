@@ -13,8 +13,8 @@ class CallLogsLoading extends CallLogsState {
 }
 
 class CallLogsLoaded extends CallLogsState {
-  final HimoCallLog incommingCalls;
+  final HimoCallLog incomingCalls;
   final HimoCallLog outgoingCalls;
   final HimoCallLog missedCalls;
-  const CallLogsLoaded(this.incommingCalls, this.outgoingCalls, this.missedCalls) : super();
+  const CallLogsLoaded(this.incomingCalls, this.outgoingCalls, this.missedCalls) : super();
 }

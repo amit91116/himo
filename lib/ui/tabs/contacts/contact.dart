@@ -65,11 +65,11 @@ class _ContactDetailsState extends State<ContactDetails> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        BlocBuilder<CallLogsBloc, CallLogsState>(builder: (context, state) {
-                          if (state is CallLogsLoading) {
+                        BlocBuilder<CallLogsBloc, CallLogsState>(builder: (context, logsState) {
+                          if (logsState is CallLogsLoading) {
                             return const Center(child: CircularProgressIndicator());
-                          } else if (state is CallLogsLoaded) {
-                            return getLogsDetails(state, maxWidth);
+                          } else if (logsState is CallLogsLoaded) {
+                            return getLogsDetails(state.contact, logsState, maxWidth);
                           }
                           return Container();
                         }),
@@ -93,18 +93,6 @@ class _ContactDetailsState extends State<ContactDetails> {
         },
       ),
     );
-  }
-
-  String getFullName(Contact contact) {
-    String output = contact.displayName;
-    if (output == "" && contact.phones.isNotEmpty) {
-      output = contact.phones[0].number;
-    }
-    return output;
-  }
-
-  String getPrimaryPhone(Contact contact) {
-    return (contact.phones.isNotEmpty) ? contact.phones[0].number : "";
   }
 
   Widget getProfileStatic(Contact contact, double maxWidth) {
@@ -166,7 +154,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                 Visibility(
                   visible: (contact.emails.isNotEmpty),
                   child: TextButton(
-                      onPressed: (contact.emails.isNotEmpty) ? () => {_sendEmail(contact.emails[0].address)} : null,
+                      onPressed: (contact.emails.isNotEmpty) ? () => {sendEmail(contact.emails[0].address)} : null,
                       child: const Icon(Icons.email)),
                 ),
                 TextButton(
@@ -364,7 +352,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                   motion: const ScrollMotion(),
                   children: [
                     SlidableAction(
-                      onPressed: (context) => {_sendEmail(email.address)},
+                      onPressed: (context) => {sendEmail(email.address)},
                       backgroundColor: Theme.of(context).colorScheme.secondary,
                       foregroundColor: Theme.of(context).colorScheme.background,
                       icon: Icons.send,
@@ -379,7 +367,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                   ),
                   title: Text(email.address),
                   trailing:
-                      TextButton(onPressed: () => {_sendEmail(email.address)}, child: const Icon(Icons.email_outlined)),
+                      TextButton(onPressed: () => {sendEmail(email.address)}, child: const Icon(Icons.email_outlined)),
                   onLongPress: () {
                     Clipboard.setData(ClipboardData(text: email.address));
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied")));
@@ -415,7 +403,8 @@ class _ContactDetailsState extends State<ContactDetails> {
       if (newEvent != null) {
         contact.events.add(newEvent);
         bool repeatYearly = newEvent.label != EventLabel.custom;
-        addEvent(contact.displayName + ": " + newEvent.customLabel.toString(), DateTime(newEvent.year!, newEvent.month, newEvent.day), repeatYearly);
+        addEvent(contact.displayName + ": " + newEvent.customLabel.toString(),
+            DateTime(newEvent.year!, newEvent.month, newEvent.day), repeatYearly);
         BlocProvider.of<ContactBloc>(context).add(UpdateContact(contact));
       }
     } else if (heading == mobile) {
@@ -441,11 +430,9 @@ class _ContactDetailsState extends State<ContactDetails> {
     }
   }
 
-  _sendEmail(String email) {
-    launch("mailto:$email");
-  }
 
-  Widget getLogsDetails(CallLogsLoaded logs, double maxWidth) {
+
+  Widget getLogsDetails(Contact contact, CallLogsLoaded logs, double maxWidth) {
     return Container(
       width: maxWidth,
       margin: const EdgeInsets.only(bottom: 16),
@@ -456,9 +443,9 @@ class _ContactDetailsState extends State<ContactDetails> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ContactCallLog(logs: logs.incommingCalls),
-          ContactCallLog(logs: logs.outgoingCalls),
-          ContactCallLog(logs: logs.missedCalls),
+          ContactCallLog(contact: contact, logs: logs.incomingCalls),
+          ContactCallLog(contact: contact, logs: logs.outgoingCalls),
+          ContactCallLog(contact: contact, logs: logs.missedCalls),
         ],
       ),
     );

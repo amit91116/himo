@@ -32,6 +32,8 @@ dependencies:
   image_cropper:
   flutter_typeahead:
   add_2_calendar:
+  intl:
+  table_calendar:
 
 dev_dependencies:
   flutter_test:

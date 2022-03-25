@@ -1,6 +1,8 @@
 import 'dart:core';
 import 'dart:io';
 
+import 'package:add_2_calendar/add_2_calendar.dart' as calendar;
+import 'package:call_log/call_log.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -9,7 +11,8 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:himo/ui/global/validator.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:add_2_calendar/add_2_calendar.dart' as calendar;
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 const String event = "Event";
 const String mobile = "Mobile";
@@ -218,4 +221,37 @@ Future addEvent(String title, DateTime dateTime, bool isEveryYear) async {
     event.recurrence = calendar.Recurrence(frequency: calendar.Frequency.yearly);
   }
   await calendar.Add2Calendar.addEvent2Cal(event);
+}
+
+String getFullName(Contact contact) {
+  String output = contact.displayName;
+  if (output == "" && contact.phones.isNotEmpty) {
+    output = contact.phones[0].number;
+  }
+  return output;
+}
+
+String getPrimaryPhone(Contact contact) {
+  return (contact.phones.isNotEmpty) ? contact.phones[0].number : "";
+}
+
+sendEmail(String email) async {
+  await launch("mailto:$email");
+}
+
+DateTime getDateTime(int timestamp) {
+  return DateTime.fromMicrosecondsSinceEpoch(timestamp * 1000);
+}
+
+bool isBefore(CallLogEntry lastEntry, DateTime current) {
+  DateTime last = getDateTime(lastEntry.timestamp!);
+  return last.day > current.day || last.month > current.month || last.year > current.year;
+}
+
+DateFormat getDateFormat() {
+  return DateFormat("dd-MM-yyyy");
+}
+
+DateFormat getTimeFormat() {
+  return DateFormat("hh:mm:ss a");
 }

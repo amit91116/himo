@@ -15,7 +15,7 @@ class StaticVisual {
   static double usableHeight(BuildContext context) => MediaQuery.of(context).size.height - Constants.navHeight;
 
   static double usableWidth(BuildContext context) => MediaQuery.of(context).size.width;
-  static Color incomingColor = const Color.fromARGB(255, 0, 255, 0);
+  static Color incomingColor = Colors.green;
   static Color outgoingColor = const Color.fromARGB(255, 0, 0, 255);
   static Color missedColor = const Color.fromARGB(255, 255, 0, 0);
 
