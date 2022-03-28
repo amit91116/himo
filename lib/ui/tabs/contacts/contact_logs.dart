@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:call_log/call_log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/contact.dart';
 import 'package:flutter_sms/flutter_sms.dart';
 import 'package:himo/models/call_log.dart';
 import 'package:himo/ui/global/string_extension.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../global/constants.dart';
@@ -21,6 +24,20 @@ class ContactLogs extends StatefulWidget {
 }
 
 class _ContactLogsState extends State<ContactLogs> {
+  bool hasMultiplePhones = false;
+  bool showFilter = true;
+
+  @override
+  void initState() {
+    super.initState();
+    hasMultiplePhones = widget.contact.phones.length > 1;
+    Timer(const Duration(seconds: 3), () {
+      setState(() {
+        showFilter = false;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     double maxWidth = StaticVisual.usableWidth(context);
@@ -35,12 +52,36 @@ class _ContactLogsState extends State<ContactLogs> {
             height: 116,
             child: getProfileStatic(widget.contact, maxWidth),
           ),
-          Align(
-            alignment: Alignment.center,
-            child: Text(
-              widget.logs.type.name.capitalize() + " Calls",
-              textScaleFactor: 1.3,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                    onPressed: () {
+                      setState(() {
+                        showFilter = !showFilter;
+                      });
+                    },
+                    icon: const Icon(Icons.calendar_today)),
+                Text(
+                  "Duration: ${widget.logs.formattedDuration}",
+                  textScaleFactor: 1.3,
+                ),
+              ],
             ),
+          ),
+          Visibility(
+            child: TableCalendar(
+              focusedDay: DateTime.now(),
+              firstDay: DateTime(1970),
+              lastDay: DateTime.now(),
+              calendarFormat: CalendarFormat.month,
+              availableCalendarFormats: const {
+                CalendarFormat.month: 'Month',
+              },
+            ),
+            visible: showFilter,
           ),
           Expanded(
             child: ListView.builder(
@@ -52,18 +93,61 @@ class _ContactLogsState extends State<ContactLogs> {
                 if (index > 0) _isBefore = isBefore(widget.logs.entries[index - 1], dateTime);
                 String timestamp = getTimeFormat().format(dateTime);
 
-                ListTile tile = ListTile(
-                  trailing: Icon(
-                    widget.logs.icon,
-                    color: widget.logs.color,
-                  ),
-                  title: Text(timestamp),
-                  subtitle: Text("${log.duration}"),
-                );
+                ListTile tile;
+
+                if (hasMultiplePhones) {
+                  tile = ListTile(
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(log.number!),
+                        Text(timestamp),
+                      ],
+                    ),
+                    subtitle: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          width: getWidth(maxWidth, widget.logs.duration, log.duration),
+                          height: 16,
+                          decoration: BoxDecoration(
+                              color: widget.logs.lightColor,
+                              borderRadius: const BorderRadius.all(Radius.circular(8.0))),
+                        ),
+                        Text(formatDuration(log.duration!)),
+                      ],
+                    ),
+                  );
+                } else {
+                  tile = ListTile(
+                    title: Text(timestamp),
+                    subtitle: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          width: getWidth(maxWidth, widget.logs.duration, log.duration),
+                          height: 16,
+                          decoration: BoxDecoration(
+                              color: widget.logs.lightColor,
+                              borderRadius: const BorderRadius.all(Radius.circular(8.0))),
+                        ),
+                        Text(formatDuration(log.duration!)),
+                      ],
+                    ),
+                  );
+                }
                 if (_isBefore) {
                   return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(getDateFormat().format(dateTime)),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: Text(
+                          getDateFormat().format(dateTime),
+                          textScaleFactor: 1.3,
+                        ),
+                      ),
                       tile,
                     ],
                   );
@@ -78,69 +162,77 @@ class _ContactLogsState extends State<ContactLogs> {
   }
 
   Widget getProfileStatic(Contact contact, double maxWidth) {
-    return Row(
-      children: [
-        Container(
-          width: 116,
-          height: 116,
-          margin: const EdgeInsets.only(left: 16),
-          padding: const EdgeInsets.all(4.0),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
-            borderRadius: const BorderRadius.all(Radius.circular(58)),
-          ),
-          child: (contact.thumbnail != null)
-              ? CircleAvatar(
-                  backgroundImage: MemoryImage(contact.photoOrThumbnail!),
-                )
-              : CircleAvatar(
-                  child: Text(
-                    getFullName(contact).initials(),
-                    textScaleFactor: 3.5,
-                  ),
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                ),
-        ),
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            StaticVisual.smallHeight,
-            Text(getFullName(contact), textScaleFactor: 2),
-            StaticVisual.smallHeight,
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextButton(
-                    onPressed: () => callNumber(getPrimaryPhone(contact)),
-                    child: const Icon(
-                      Icons.call,
-                      color: Colors.green,
-                    )),
-                TextButton(
-                    onPressed: () => {
-                          sendSMS(message: "", recipients: [getPrimaryPhone(contact)])
-                        },
-                    child: const Icon(
-                      Icons.message,
-                      color: Colors.orange,
-                    )),
-                Visibility(
-                  visible: (contact.emails.isNotEmpty),
-                  child: TextButton(
-                      onPressed: (contact.emails.isNotEmpty) ? () => {sendEmail(contact.emails[0].address)} : null,
-                      child: const Icon(Icons.email)),
-                ),
-                TextButton(
-                    onPressed: () => launch("whatsapp://send?phone=${getPrimaryPhone(contact)}"),
-                    child: Constants.whatsAppIcon),
-              ],
+    return Container(
+      color: Theme.of(context).backgroundColor,
+      child: Row(
+        children: [
+          Container(
+            width: 116,
+            height: 116,
+            margin: const EdgeInsets.only(left: 16),
+            padding: const EdgeInsets.all(4.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: const BorderRadius.all(Radius.circular(58)),
             ),
-          ],
-        ),
-      ],
+            child: (contact.thumbnail != null)
+                ? CircleAvatar(
+                    backgroundImage: MemoryImage(contact.photoOrThumbnail!),
+                  )
+                : CircleAvatar(
+                    child: Text(
+                      getFullName(contact).initials(),
+                      textScaleFactor: 3.5,
+                    ),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                  ),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              StaticVisual.smallHeight,
+              Row(
+                children: [
+                  Text(getFullName(contact), textScaleFactor: 2),
+                  Icon(widget.logs.icon, color: widget.logs.color)
+                ],
+              ),
+              StaticVisual.smallHeight,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton(
+                      onPressed: () => callNumber(getPrimaryPhone(contact)),
+                      child: const Icon(
+                        Icons.call,
+                        color: Colors.green,
+                      )),
+                  TextButton(
+                      onPressed: () => {
+                            sendSMS(message: "", recipients: [getPrimaryPhone(contact)])
+                          },
+                      child: const Icon(
+                        Icons.message,
+                        color: Colors.orange,
+                      )),
+                  Visibility(
+                    visible: (contact.emails.isNotEmpty),
+                    child: TextButton(
+                        onPressed: (contact.emails.isNotEmpty) ? () => {sendEmail(contact.emails[0].address)} : null,
+                        child: const Icon(Icons.email)),
+                  ),
+                  TextButton(
+                      onPressed: () => launch("whatsapp://send?phone=${getPrimaryPhone(contact)}"),
+                      child: Constants.whatsAppIcon),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

@@ -17,7 +17,7 @@ class StaticVisual {
   static double usableWidth(BuildContext context) => MediaQuery.of(context).size.width;
   static Color incomingColor = Colors.green;
   static Color outgoingColor = const Color.fromARGB(255, 0, 0, 255);
-  static Color missedColor = const Color.fromARGB(255, 255, 0, 0);
+  static Color missedColor = Colors.red;
 
   static Color bgIconColor(BuildContext context) => Theme.of(context).colorScheme.onBackground.withOpacity(0.08);
   static Color bgBoxColor = const Color.fromARGB(255, 252, 202, 201);

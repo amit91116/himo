@@ -249,9 +249,24 @@ bool isBefore(CallLogEntry lastEntry, DateTime current) {
 }
 
 DateFormat getDateFormat() {
-  return DateFormat("dd-MM-yyyy");
+  return DateFormat("dd MMM yyyy");
 }
 
 DateFormat getTimeFormat() {
   return DateFormat("hh:mm:ss a");
+}
+
+String formatDuration(int duration) {
+  var h = (duration / 3600).floor();
+  var m = (duration % 3600 / 60).floor();
+  var s = (duration % 3600 % 60).floor();
+  return "${h < 10 ? '0$h' : h}:${m < 10 ? '0$m' : m}:${s < 10 ? '0$s' : s}";
+}
+
+double getWidth(double maxWidth, int totalDuration, int? callDuration) {
+  if (callDuration == null || callDuration == 0 || totalDuration == 0) {
+    return 16;
+  }
+  maxWidth = maxWidth - 116;
+  return (maxWidth * (callDuration / totalDuration)) + 16;
 }

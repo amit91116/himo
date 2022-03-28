@@ -270,9 +270,9 @@ class _ContactDetailsState extends State<ContactDetails> {
                   children: [
                     SlidableAction(
                       onPressed: (_) => {deletePhoneNumber(context, contact, phone)},
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                      backgroundColor: Colors.red,
                       foregroundColor: Theme.of(context).colorScheme.background,
-                      icon: Icons.delete_forever_outlined,
+                      icon: Icons.delete,
                       label: 'Delete',
                     ),
                   ],
@@ -341,9 +341,9 @@ class _ContactDetailsState extends State<ContactDetails> {
                   children: [
                     SlidableAction(
                       onPressed: (_) => {deleteEmail(context, contact, email)},
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                      backgroundColor: Colors.red,
                       foregroundColor: Theme.of(context).colorScheme.background,
-                      icon: Icons.delete_forever_outlined,
+                      icon: Icons.delete,
                       label: 'Delete',
                     ),
                   ],
@@ -353,7 +353,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                   children: [
                     SlidableAction(
                       onPressed: (context) => {sendEmail(email.address)},
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                      backgroundColor: Colors.green,
                       foregroundColor: Theme.of(context).colorScheme.background,
                       icon: Icons.send,
                       label: 'Email',

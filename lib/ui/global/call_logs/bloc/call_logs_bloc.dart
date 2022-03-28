@@ -25,11 +25,11 @@ class CallLogsBloc extends Bloc<CallLogsEvent, CallLogsState> {
         name: name,
         type: CallType.missed,
       );
-      HimoCallLog incommingLogs = HimoCallLog(incomingCalls, CallType.incoming, Icons.call_received, StaticVisual.incomingColor);
+      HimoCallLog incomingLogs = HimoCallLog(incomingCalls, CallType.incoming, Icons.call_received, StaticVisual.incomingColor);
       HimoCallLog outgoingLogs = HimoCallLog(outgoingCalls, CallType.outgoing, Icons.call_made, StaticVisual.outgoingColor);
       HimoCallLog missedLogs = HimoCallLog(missedCalls, CallType.missed, Icons.call_missed, StaticVisual.missedColor);
 
-      emit.call(CallLogsLoaded(incommingLogs, outgoingLogs, missedLogs));
+      emit.call(CallLogsLoaded(incomingLogs, outgoingLogs, missedLogs));
     });
   }
 }
