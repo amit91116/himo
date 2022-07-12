@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:himo/ui/global/constants.dart';
+import 'package:himo/ui/global/widgets/box_container.dart';
 
 class StaticVisual {
   static Widget smallHeight = SizedBox(height: 8, child: Container());
@@ -22,18 +23,59 @@ class StaticVisual {
   static Color bgIconColor(BuildContext context) => Theme.of(context).colorScheme.onBackground.withOpacity(0.08);
   static Color bgBoxColor = const Color.fromARGB(255, 252, 202, 201);
 
-  static boxDecoration(BuildContext context) {
-    return BoxDecoration(
-      borderRadius: const BorderRadius.all(Radius.circular(8)),
-      color: bgBoxColor,
-    );
-  }
-
   static boxDec(BuildContext context) {
     return BoxDecoration(
       borderRadius: const BorderRadius.all(Radius.circular(8)),
       border: Border.all(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.08)),
-      color: Theme.of(context).colorScheme.background,
+      color: Colors.transparent,
     );
   }
+
+  static BoxDecoration boxDecoration(context) => BoxDecoration(
+        color: Theme.of(context).colorScheme.background,
+        /*gradient: LinearGradient(
+            colors: [
+              Theme.of(context).colorScheme.background,
+              Theme.of(context).colorScheme.surface,
+            ],
+            begin: const FractionalOffset(0.0, 1.0),
+            end: const FractionalOffset(0.0, 0.0),
+            stops: const [0.0, 1.0],
+            tileMode: TileMode.clamp),*/
+        borderRadius: BorderRadius.circular(8),
+      );
+
+  static BoxDecoration boxDecorationWithShadow(context) => BoxDecoration(
+        color: Theme.of(context).colorScheme.background,
+        /*gradient: LinearGradient(
+            colors: [
+              Theme.of(context).colorScheme.background,
+              Theme.of(context).colorScheme.surface,
+            ],
+            begin: const FractionalOffset(0.0, 1.0),
+            end: const FractionalOffset(0.0, 0.0),
+            stops: const [0.0, 1.0],
+            tileMode: TileMode.clamp),*/
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).colorScheme.background.withAlpha(120),
+            offset: const Offset(0.0, 5.0),
+            blurRadius: 5.0,
+            spreadRadius: 1.0,
+          ), //BoxShadow
+          BoxShadow(
+            color: Theme.of(context).colorScheme.surface.withAlpha(120),
+            offset: const Offset(5.0, 0.0),
+            blurRadius: 5.0,
+            spreadRadius: 1.0,
+          ), //BoxShadow
+        ],
+      );
+
+  static BoxContainer boxContainer(List<Widget> child) => BoxContainer(
+          child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: child,
+      ));
 }

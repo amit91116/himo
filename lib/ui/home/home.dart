@@ -33,15 +33,15 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Scaffold(
         body: tabs.elementAt(tabIndex),
         bottomNavigationBar: CurvedNavigationBar(
-          backgroundColor: Theme.of(context).colorScheme.background,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           color: Theme.of(context).colorScheme.primary,
           height: Constants.navHeight,
           animationDuration: const Duration(milliseconds: 300),
           items: <Widget>[
-            Icon(Icons.dashboard, size: 24, color: Theme.of(context).colorScheme.background),
-            Icon(Icons.phone_callback, size: 24, color: Theme.of(context).colorScheme.background),
-            Icon(Icons.contacts, size: 24, color: Theme.of(context).colorScheme.background),
-            Icon(Icons.settings, size: 24, color: Theme.of(context).colorScheme.background),
+            Icon(Icons.dashboard, size: 24, color: Theme.of(context).colorScheme.surface),
+            Icon(Icons.phone_callback, size: 24, color: Theme.of(context).colorScheme.surface),
+            Icon(Icons.contacts, size: 24, color: Theme.of(context).colorScheme.surface),
+            Icon(Icons.settings, size: 24, color: Theme.of(context).colorScheme.surface),
           ],
           onTap: (index) => index != tabIndex
               ? setState(() => tabIndex = index)

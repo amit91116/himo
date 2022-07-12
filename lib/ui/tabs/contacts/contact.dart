@@ -13,6 +13,7 @@ import 'package:himo/ui/global/call_logs/bloc/call_logs_bloc.dart';
 import 'package:himo/ui/global/constants.dart';
 import 'package:himo/ui/global/static_visual.dart';
 import 'package:himo/ui/global/validator.dart';
+import 'package:himo/ui/global/widgets/box_container.dart';
 import 'package:himo/ui/global/widgets/contact_call_log.dart';
 import 'package:himo/ui/global/widgets/icon_button.dart';
 import 'package:himo/ui/tabs/contacts/popups/email.dart';
@@ -73,12 +74,9 @@ class _ContactDetailsState extends State<ContactDetails> {
                           }
                           return Container();
                         }),
-                        getHeading(event, state.contact),
-                        getEvents(state.contact),
-                        getHeading(mobile, state.contact),
-                        getPhoneNumbers(state.contact),
-                        getHeading(email, state.contact),
-                        getEmails(state.contact),
+                        getEventBox(state),
+                        getMobileBox(state),
+                        getEmailBox(state),
                       ],
                     ),
                   ),
@@ -95,6 +93,27 @@ class _ContactDetailsState extends State<ContactDetails> {
     );
   }
 
+  BoxContainer getEventBox(ContactFound state) {
+    return StaticVisual.boxContainer([
+      getHeading(event, state.contact),
+      getEvents(state.contact),
+    ]);
+  }
+
+  BoxContainer getMobileBox(ContactFound state) {
+    return StaticVisual.boxContainer([
+      getHeading(mobile, state.contact),
+      getPhoneNumbers(state.contact),
+    ]);
+  }
+
+  BoxContainer getEmailBox(ContactFound state) {
+    return StaticVisual.boxContainer([
+      getHeading(email, state.contact),
+      getEmails(state.contact),
+    ]);
+  }
+
   Widget getProfileStatic(Contact contact, double maxWidth) {
     return Row(
       children: [
@@ -104,7 +123,7 @@ class _ContactDetailsState extends State<ContactDetails> {
           margin: const EdgeInsets.only(left: 16),
           padding: const EdgeInsets.all(4.0),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
+            color: Theme.of(context).colorScheme.background,
             borderRadius: const BorderRadius.all(Radius.circular(58)),
           ),
           child: (contact.thumbnail != null)
@@ -170,13 +189,16 @@ class _ContactDetailsState extends State<ContactDetails> {
 
   Widget getEvents(Contact contact) {
     if (contact.events.isEmpty) {
-      return Column(
-        children: const [
-          ListTile(
-            leading: Icon(Icons.close),
-            title: Text("No Event found!"),
-          ),
-        ],
+      return Container(
+        decoration: BoxDecoration(color: Theme.of(context).colorScheme.secondary),
+        child: Column(
+          children: const [
+            ListTile(
+              leading: Icon(Icons.close),
+              title: Text("No Event found!"),
+            ),
+          ],
+        ),
       );
     } else {
       int index = 0;
@@ -380,7 +402,7 @@ class _ContactDetailsState extends State<ContactDetails> {
 
   Widget getHeading(String heading, contact) {
     return Container(
-      padding: const EdgeInsets.only(left: 20, right: 16),
+      padding: const EdgeInsets.only(left: 16, right: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -430,12 +452,10 @@ class _ContactDetailsState extends State<ContactDetails> {
     }
   }
 
-
-
   Widget getLogsDetails(Contact contact, CallLogsLoaded logs, double maxWidth) {
     return Container(
       width: maxWidth,
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       height: 96,
       child: Row(
@@ -465,18 +485,17 @@ class _ContactDetailsState extends State<ContactDetails> {
 
   Widget slideUpBackground() {
     return Container(
+      margin: const EdgeInsets.only(right: 16),
       decoration: const BoxDecoration(color: Colors.red, borderRadius: BorderRadius.all(Radius.circular(8))),
       child: Align(
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: const <Widget>[
-            SizedBox(
-              width: 20,
-            ),
             Icon(
               Icons.delete,
               color: Colors.white,
             ),
+            SizedBox(width: 8),
             Text(
               "Delete",
               style: TextStyle(

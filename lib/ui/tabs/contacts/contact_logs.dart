@@ -163,7 +163,7 @@ class _ContactLogsState extends State<ContactLogs> {
 
   Widget getProfileStatic(Contact contact, double maxWidth) {
     return Container(
-      color: Theme.of(context).backgroundColor,
+      color: Theme.of(context).colorScheme.surface,
       child: Row(
         children: [
           Container(
@@ -172,7 +172,7 @@ class _ContactLogsState extends State<ContactLogs> {
             margin: const EdgeInsets.only(left: 16),
             padding: const EdgeInsets.all(4.0),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
+              color: Theme.of(context).colorScheme.background,
               borderRadius: const BorderRadius.all(Radius.circular(58)),
             ),
             child: (contact.thumbnail != null)
